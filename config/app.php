@@ -180,6 +180,11 @@ if (!function_exists('app_path')) {
 if (!function_exists('app_name')) {
     function app_name(): string
     {
+        if (function_exists('setting_string')) {
+            $value = trim(setting_string('app_name', APP_DISPLAY_NAME));
+            return $value !== '' ? $value : APP_DISPLAY_NAME;
+        }
+
         return APP_DISPLAY_NAME;
     }
 }
@@ -187,6 +192,11 @@ if (!function_exists('app_name')) {
 if (!function_exists('app_version')) {
     function app_version(): string
     {
+        if (function_exists('setting_string')) {
+            $value = trim(setting_string('app_version_visual', APP_VERSION));
+            return $value !== '' ? $value : APP_VERSION;
+        }
+
         return APP_VERSION;
     }
 }
@@ -201,6 +211,18 @@ if (!function_exists('app_modules')) {
 if (!function_exists('module_enabled')) {
     function module_enabled(string $key): bool
     {
+        $key = trim($key);
+        if ($key === '') {
+            return false;
+        }
+
+        if (function_exists('setting_bool')) {
+            $dynamicKey = 'module_' . $key . '_enabled';
+            $defaultModules = app_modules();
+            $default = !empty($defaultModules[$key]);
+            return setting_bool($dynamicKey, $default);
+        }
+
         $mods = app_modules();
         return !empty($mods[$key]);
     }
