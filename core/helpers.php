@@ -3,6 +3,7 @@
 // Funzioni helper comuni di Turnar
 
 require_once __DIR__ . '/../core/auth.php';
+require_once __DIR__ . '/../core/special_destinations.php';
 
 // Evita inclusioni multiple
 if (defined('TURNAR_HELPERS_LOADED')) {
