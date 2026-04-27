@@ -69,6 +69,12 @@ if (strpos($currentFullPath, '/modules/dashboard/special_overview.php') !== fals
     $effectiveActiveModule = 'dashboard_special';
 }
 
+$isPlanningPage = strpos($currentFullPath, '/modules/turni/planning.php') !== false;
+$planningNotifyDate = null;
+if ($isPlanningPage) {
+    $planningNotifyDate = normalize_date_iso((string)get('data', today_date())) ?: today_date();
+}
+
 $navItems = [
     [
         'key'        => 'dashboard',
@@ -214,6 +220,7 @@ $resolvedThemeMode = $themeMode === 'auto' ? 'dark' : $themeMode;
     </style>
 
     <link rel="stylesheet" href="<?php echo h(app_url('assets/css/turnar.css')); ?>?v=<?php echo urlencode((string)app_version()); ?>">
+    <link rel="stylesheet" href="<?php echo h(app_url('assets/css/turnar-polish.css')); ?>?v=<?php echo urlencode((string)app_version()); ?>">
 
     <?php echo $extraHead; ?>
 </head>
@@ -304,6 +311,11 @@ $resolvedThemeMode = $themeMode === 'auto' ? 'dark' : $themeMode;
             </div>
 
             <div class="page-head-right">
+                <?php if ($isPlanningPage && $planningNotifyDate !== null && can('assignments.edit')): ?>
+                    <a class="btn btn-primary" href="<?php echo h(app_url('modules/turni/send_day_notifications.php?data=' . urlencode($planningNotifyDate))); ?>">
+                        🔔 Invia notifiche
+                    </a>
+                <?php endif; ?>
                 <span class="soft-pill">Versione <?php echo h(app_version()); ?></span>
                 <span class="soft-pill"><?php echo h(format_datetime_it(now_datetime())); ?></span>
             </div>
