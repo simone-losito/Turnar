@@ -54,11 +54,33 @@ foreach ($ganttNeedles as $needle) {
     }
 }
 
+$specialReportNeedles = [
+    '/modules/reports/report_special_destinations.php',
+    '/modules/reports/export_special_destinations_csv.php',
+];
+foreach ($specialReportNeedles as $needle) {
+    if (strpos($currentFullPath, $needle) !== false) {
+        $effectiveActiveModule = 'reports_special';
+        break;
+    }
+}
+
+if (strpos($currentFullPath, '/modules/dashboard/special_overview.php') !== false) {
+    $effectiveActiveModule = 'dashboard_special';
+}
+
 $navItems = [
     [
         'key'        => 'dashboard',
         'label'      => 'Dashboard',
         'url'        => app_url(),
+        'enabled'    => module_enabled('dashboard'),
+        'permission' => 'dashboard.view',
+    ],
+    [
+        'key'        => 'dashboard_special',
+        'label'      => 'Dashboard HR',
+        'url'        => app_url('modules/dashboard/special_overview.php'),
         'enabled'    => module_enabled('dashboard'),
         'permission' => 'dashboard.view',
     ],
@@ -101,6 +123,13 @@ $navItems = [
         'key'        => 'reports',
         'label'      => 'Report',
         'url'        => app_url('modules/reports/index.php'),
+        'enabled'    => module_enabled('reports'),
+        'permission' => 'reports.view',
+    ],
+    [
+        'key'        => 'reports_special',
+        'label'      => 'Report HR',
+        'url'        => app_url('modules/reports/report_special_destinations.php'),
         'enabled'    => module_enabled('reports'),
         'permission' => 'reports.view',
     ],
