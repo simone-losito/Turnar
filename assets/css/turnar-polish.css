@@ -1,0 +1,467 @@
+/* assets/css/turnar-polish.css */
+/* Rifiniture finali UI/UX Turnar - desktop, mobile, stampa */
+
+:root{
+    --radius-xl:28px;
+    --radius-lg:24px;
+    --radius-md:18px;
+    --shadow-soft:0 18px 42px rgba(0,0,0,.12);
+    --shadow-hover:0 22px 48px rgba(0,0,0,.18);
+}
+
+body.turnar-desktop-page{
+    min-height:100vh;
+    background:
+        radial-gradient(circle at top left, color-mix(in srgb, var(--primary) 13%, transparent), transparent 30%),
+        radial-gradient(circle at top right, color-mix(in srgb, var(--primary-2) 10%, transparent), transparent 28%),
+        var(--body-bg, var(--bg-1, #050816));
+}
+
+.app-shell{
+    min-height:100vh;
+}
+
+.topbar{
+    position:sticky;
+    top:0;
+    z-index:80;
+    backdrop-filter:blur(18px);
+    border-bottom:1px solid var(--line);
+    background:color-mix(in srgb, var(--bg-1, #050816) 84%, transparent);
+}
+
+.topbar-inner{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    padding:14px 22px;
+}
+
+.brand-wrap{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    min-width:0;
+}
+
+.brand-logo{
+    width:46px;
+    height:46px;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    flex:0 0 auto;
+    color:#fff;
+    font-weight:900;
+    background:linear-gradient(135deg, var(--primary), var(--primary-2));
+    box-shadow:0 12px 28px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+
+.brand-logo.has-image{
+    background:color-mix(in srgb, var(--bg-3) 90%, transparent);
+    border:1px solid var(--line);
+}
+
+.brand-logo img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    padding:4px;
+}
+
+.brand-title{
+    margin:0;
+    color:var(--text);
+    font-size:18px;
+    line-height:1.1;
+    font-weight:950;
+}
+
+.brand-subtitle,
+.user-box-label{
+    color:var(--muted);
+    font-size:12px;
+}
+
+.user-box{
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:18px;
+    background:color-mix(in srgb, var(--bg-3) 76%, transparent);
+}
+
+.user-box-main{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    flex-wrap:wrap;
+    color:var(--text);
+    font-size:13px;
+    font-weight:800;
+}
+
+.role-pill,
+.scope-pill,
+.soft-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 10px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:color-mix(in srgb, var(--bg-3) 86%, transparent);
+    color:var(--text);
+    font-size:11px;
+    font-weight:900;
+}
+
+.nav-bar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    overflow-x:auto;
+    padding:0 22px 14px;
+    scrollbar-width:thin;
+}
+
+.nav-link{
+    white-space:nowrap;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:38px;
+    padding:9px 13px;
+    border-radius:999px;
+    border:1px solid transparent;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:850;
+    transition:.18s ease;
+}
+
+.nav-link:hover{
+    color:var(--text);
+    border-color:color-mix(in srgb, var(--primary) 25%, transparent);
+    background:color-mix(in srgb, var(--primary) 9%, transparent);
+}
+
+.nav-link.active{
+    color:#fff;
+    border-color:color-mix(in srgb, var(--primary) 45%, transparent);
+    background:linear-gradient(135deg, var(--primary), var(--primary-2));
+    box-shadow:0 10px 24px rgba(0,0,0,.16);
+}
+
+.nav-link.logout{
+    color:#7f1d1d;
+    background:rgba(248,113,113,.12);
+    border-color:rgba(248,113,113,.22);
+}
+
+.page-wrap{
+    width:min(1740px, 100%);
+    margin:0 auto;
+    padding:24px;
+}
+
+.page-head{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:20px;
+}
+
+.page-head h1{
+    margin:0;
+    color:var(--text);
+    font-size:30px;
+    line-height:1.1;
+    font-weight:950;
+}
+
+.page-head p{
+    margin:8px 0 0;
+    color:var(--muted);
+    line-height:1.55;
+}
+
+.page-head-right{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.content-card,
+.entity-card,
+.entity-row,
+.toolbar{
+    background:var(--content-card-bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-soft);
+}
+
+.content-card{
+    padding:20px;
+}
+
+.toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:14px;
+    margin-bottom:16px;
+}
+
+.toolbar-left,
+.toolbar-right{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.toolbar-search{
+    min-width:min(420px, 100%);
+}
+
+.field-sm{
+    width:auto;
+    min-width:170px;
+}
+
+.entity-card,
+.entity-row{
+    padding:16px;
+    transition:.18s ease;
+}
+
+.entity-card:hover,
+.entity-row:hover,
+.card:hover{
+    border-color:color-mix(in srgb, var(--primary) 22%, var(--line));
+}
+
+.entity-avatar{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:999px;
+    flex:0 0 auto;
+    color:#fff;
+    font-weight:950;
+    background:linear-gradient(135deg, var(--primary), var(--primary-2));
+}
+
+.entity-avatar.md{width:42px;height:42px;font-size:14px;}
+.entity-avatar.lg{width:54px;height:54px;font-size:16px;}
+
+.view-toggle{
+    display:inline-flex;
+    padding:4px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:color-mix(in srgb, var(--bg-3) 82%, transparent);
+}
+
+.toggle-item{
+    border:0;
+    border-radius:999px;
+    padding:8px 11px;
+    color:var(--muted);
+    background:transparent;
+    font-size:12px;
+    font-weight:900;
+    cursor:pointer;
+}
+
+.toggle-item.active{
+    color:#fff;
+    background:linear-gradient(135deg, var(--primary), var(--primary-2));
+}
+
+.badge-purple,
+.pill-purple{
+    color:#581c87;
+    background:rgba(168,85,247,.18);
+    border-color:rgba(168,85,247,.34);
+}
+
+.mini-pill.password-flag{
+    color:#78350f;
+    background:rgba(251,191,36,.18);
+    border-color:rgba(251,191,36,.34);
+}
+
+.table-responsive,
+.table-wrap{
+    overflow:auto;
+    border:1px solid var(--line);
+    border-radius:18px;
+}
+
+.table-responsive table,
+.table-wrap table{
+    min-width:820px;
+}
+
+th{
+    color:var(--muted);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    background:color-mix(in srgb, var(--bg-3) 84%, transparent);
+}
+
+td,th{
+    padding:12px;
+    border-bottom:1px solid var(--line);
+}
+
+tr:last-child td{
+    border-bottom:0;
+}
+
+body.turnar-mobile-page{
+    padding-bottom:calc(18px + env(safe-area-inset-bottom));
+}
+
+.mobile-app-shell{
+    width:min(760px, 100%);
+}
+
+.quick-link,
+.turn-banner-item,
+.notification-card,
+.turn-card,
+.alert-card,
+.day-cell{
+    transition:.18s ease;
+}
+
+.quick-link:active,
+.turn-banner-item:active,
+.notification-card:active,
+.day-cell:active{
+    transform:scale(.99);
+}
+
+.action-link,
+.action-btn,
+.nav-btn,
+.calendar-nav-link,
+.install-btn,
+.push-btn,
+.push-secondary-btn,
+.install-secondary-btn{
+    min-height:40px;
+}
+
+@media (max-width: 1100px){
+    .topbar-inner,
+    .page-head{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .topbar-right,
+    .page-head-right{
+        justify-content:flex-start;
+    }
+
+    .toolbar{
+        align-items:stretch;
+        flex-direction:column;
+    }
+
+    .toolbar-left,
+    .toolbar-right{
+        width:100%;
+    }
+
+    .toolbar-search,
+    .field-sm{
+        flex:1 1 220px;
+    }
+}
+
+@media (max-width: 720px){
+    .page-wrap{
+        padding:16px;
+    }
+
+    .content-card{
+        padding:14px;
+        border-radius:20px;
+    }
+
+    .page-head h1{
+        font-size:24px;
+    }
+
+    .nav-bar{
+        padding-inline:14px;
+    }
+
+    .topbar-inner{
+        padding:12px 14px;
+    }
+
+    .brand-subtitle,
+    .user-box-label{
+        display:none;
+    }
+
+    .toolbar-left > *,
+    .toolbar-right > *,
+    .toolbar-search,
+    .field-sm,
+    .btn{
+        width:100%;
+    }
+
+    .btn{
+        justify-content:center;
+    }
+}
+
+@media print{
+    .topbar,
+    .toolbar,
+    .page-head-right,
+    .btn,
+    .nav-bar,
+    .footer-actions{
+        display:none !important;
+    }
+
+    body,
+    body.turnar-desktop-page,
+    body.turnar-mobile-page{
+        background:#fff !important;
+        color:#111827 !important;
+    }
+
+    .page-wrap{
+        width:100%;
+        padding:0;
+    }
+
+    .card,
+    .content-card,
+    .entity-card,
+    .entity-row{
+        box-shadow:none !important;
+        border-color:#d1d5db !important;
+        background:#fff !important;
+        color:#111827 !important;
+    }
+}
