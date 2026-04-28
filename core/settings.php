@@ -54,6 +54,10 @@ if (!function_exists('settings_defaults')) {
             'theme_mode' => 'dark',
             'theme_primary_color' => '#6ea8ff',
             'theme_secondary_color' => '#8b5cf6',
+            'company_logo_path' => '',
+            'company_favicon_path' => '',
+            'company_login_image_path' => '',
+            'topbar_logo_mode' => 'logo_and_name',
             'default_shift_start' => '07:00',
             'default_shift_end' => '16:00',
             'enable_email' => '1',
@@ -139,8 +143,9 @@ if (!function_exists('app_tagline')) { function app_tagline(): string { return s
 if (!function_exists('app_theme_mode')) { function app_theme_mode(): string { return setting_string('theme_mode', 'dark'); } }
 if (!function_exists('app_theme_primary')) { function app_theme_primary(): string { return setting_string('theme_primary_color', '#6ea8ff'); } }
 if (!function_exists('app_theme_secondary')) { function app_theme_secondary(): string { return setting_string('theme_secondary_color', '#8b5cf6'); } }
-if (!function_exists('app_company_logo')) { function app_company_logo(): string { return setting_string('company_logo', ''); } }
-if (!function_exists('app_favicon')) { function app_favicon(): string { return setting_string('app_favicon', ''); } }
+if (!function_exists('app_company_logo')) { function app_company_logo(): string { return setting_string('company_logo_path', setting_string('company_logo', '')); } }
+if (!function_exists('app_favicon')) { function app_favicon(): string { return setting_string('company_favicon_path', setting_string('app_favicon', '')); } }
+if (!function_exists('app_login_image')) { function app_login_image(): string { return setting_string('company_login_image_path', ''); } }
 if (!function_exists('app_topbar_logo_mode')) { function app_topbar_logo_mode(): string { return setting_string('topbar_logo_mode', 'logo_and_name'); } }
 
 if (!function_exists('assignment_notify_mode')) {
