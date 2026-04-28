@@ -2,6 +2,7 @@
 // modules/operators/card.php
 require_once __DIR__ . '/../../core/helpers.php';
 require_once __DIR__ . '/../../core/settings.php';
+require_once __DIR__ . '/../../core/qr.php';
 
 require_login();
 
@@ -20,6 +21,8 @@ function h($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
 $logo = app_company_logo();
 $azienda = app_name();
+$cardUrl = app_url('modules/operators/card.php?id=' . $id);
+$qr = turnar_qr_url($cardUrl, 120);
 
 require_once __DIR__ . '/../../templates/layout_top.php';
 ?>
@@ -35,8 +38,7 @@ require_once __DIR__ . '/../../templates/layout_top.php';
 
     <div style="margin:20px 0;">
         <?php if(!empty($dip['foto'])): ?>
-            <img src="<?=h(app_url($dip['foto']))?>" 
-                 style="width:140px;height:140px;border-radius:20px;object-fit:cover;">
+            <img src="<?=h(app_url($dip['foto']))?>" style="width:140px;height:140px;border-radius:20px;object-fit:cover;">
         <?php else: ?>
             <div style="width:140px;height:140px;border-radius:20px;background:#ccc;margin:auto;"></div>
         <?php endif; ?>
@@ -46,6 +48,14 @@ require_once __DIR__ . '/../../templates/layout_top.php';
 
     <div style="margin-top:10px;font-size:14px;color:var(--muted)">
         Matricola: <strong><?=h($dip['matricola'] ?? '---')?></strong>
+    </div>
+
+    <div style="margin-top:20px;">
+        <img src="<?=h($qr)?>" style="width:90px;height:90px;">
+    </div>
+
+    <div style="margin-top:20px;">
+        <a href="card_print.php?id=<?=$id?>" class="btn btn-primary">Esporta PDF</a>
     </div>
 
 </div>
