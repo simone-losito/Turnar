@@ -1,15 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="Turnar logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Turnar logo">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6ea8ff"/>
-      <stop offset="1" stop-color="#8b5cf6"/>
-    </linearGradient>
-    <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000" flood-opacity="0.32"/>
-    </filter>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b57b7"/><stop offset="1" stop-color="#07336f"/></linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#10a99b"/><stop offset="1" stop-color="#08786f"/></linearGradient>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f2aa72"/><stop offset="1" stop-color="#b96a31"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#001428" flood-opacity="0.30"/></filter>
   </defs>
-  <rect x="8" y="8" width="80" height="80" rx="24" fill="#081126" stroke="#739aff" stroke-opacity="0.45" filter="url(#s)"/>
-  <path d="M24 29h48v12H54v31H42V41H24V29z" fill="url(#g)"/>
-  <circle cx="71" cy="25" r="6" fill="#22d3ee" opacity="0.95"/>
-  <path d="M25 70h47" stroke="#6ea8ff" stroke-width="5" stroke-linecap="round" opacity="0.65"/>
+  <rect width="640" height="640" rx="64" fill="#f5fbff"/>
+  <g transform="translate(112 58)" filter="url(#shadow)">
+    <path d="M205 0 60 82v98l58 33V116l145-82z" fill="url(#blue)"/>
+    <path d="M324 34 248 78l112 64 72-43z" fill="url(#orange)"/>
+    <path d="M151 150 238 99l152 88v174l-84 48V239l-67-39-57 33 66 38v138l-97-56V238l-65-38z" fill="url(#teal)"/>
+    <path d="M61 245v78l178 103 65-37-178-103v-80z" fill="url(#blue)"/>
+    <path d="M61 209v73l48-27v-73z" fill="url(#orange)"/>
+    <path d="M306 279 340 259l34 20v41l-34 20-34-20z" fill="url(#orange)"/>
+    <path d="M118 116 263 34 323 68 178 150z" fill="#ffffff" opacity="0.96"/>
+    <path d="M109 182 151 150l87 49-55 34z" fill="#ffffff" opacity="0.94"/>
+  </g>
+  <text x="320" y="506" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="800" fill="#2f2f2f">Turnar</text>
+  <text x="320" y="568" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="500" letter-spacing="4" fill="#333333">SOFTWARE GESTIONALE</text>
 </svg>
