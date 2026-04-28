@@ -11,7 +11,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 if (!function_exists('send_email')) {
-    function send_email(string $to, string $subject, string $html, string $alt = ''): bool
+    function send_email(string $to, string $subject, string $html, string $alt = '', array $attachments = []): bool
     {
         $to = trim($to);
         $subject = trim($subject);
@@ -65,6 +65,14 @@ if (!function_exists('send_email')) {
             $replyTo = trim((string)setting('mail_reply_to', ''));
             if ($replyTo !== '') {
                 $mail->addReplyTo($replyTo);
+            }
+
+            foreach ($attachments as $attachment) {
+                $path = (string)($attachment['path'] ?? '');
+                $name = (string)($attachment['name'] ?? basename($path));
+                if ($path !== '' && is_file($path)) {
+                    $mail->addAttachment($path, $name !== '' ? $name : basename($path));
+                }
             }
 
             $mail->isHTML(true);
