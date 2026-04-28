@@ -1,0 +1,218 @@
+/* assets/css/operators-polish.css */
+/* Rifinitura pagina Personale: layout compatto, gestionale, leggibile */
+
+/* Toolbar operatori */
+body.turnar-desktop-page .toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:8px;
+}
+
+body.turnar-desktop-page .toolbar-left,
+body.turnar-desktop-page .toolbar-right{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+body.turnar-desktop-page .toolbar-search{
+    min-width:360px;
+    max-width:620px;
+    height:36px;
+}
+
+body.turnar-desktop-page .field-sm{
+    width:auto;
+    min-width:190px;
+    height:36px;
+}
+
+body.turnar-desktop-page .view-toggle{
+    display:inline-flex;
+    gap:5px;
+    padding:4px;
+    border:1px solid var(--line-soft);
+    border-radius:999px;
+    background:color-mix(in srgb, var(--bg-3) 76%, transparent);
+}
+
+body.turnar-desktop-page .toggle-item{
+    min-height:28px !important;
+    padding:6px 11px !important;
+    border-radius:999px !important;
+    box-shadow:none !important;
+}
+
+body.turnar-desktop-page .toggle-item.active{
+    color:#fff !important;
+    background:linear-gradient(135deg,var(--primary),var(--primary-2)) !important;
+    border-color:color-mix(in srgb,var(--primary) 60%,transparent) !important;
+}
+
+/* Griglia card più densa */
+body.turnar-desktop-page .operators-grid{
+    grid-template-columns:repeat(auto-fill,minmax(255px,1fr)) !important;
+    gap:10px !important;
+}
+
+body.turnar-desktop-page .operator-card{
+    gap:9px !important;
+    padding:10px 11px !important;
+    border-radius:16px !important;
+    min-height:0 !important;
+}
+
+body.turnar-desktop-page .operator-top{
+    gap:9px !important;
+    align-items:flex-start !important;
+}
+
+body.turnar-desktop-page .entity-avatar.lg,
+body.turnar-desktop-page .entity-avatar.md{
+    width:38px !important;
+    height:38px !important;
+    min-width:38px !important;
+    border-radius:12px !important;
+    font-size:13px !important;
+    font-weight:950 !important;
+    background:linear-gradient(135deg,var(--primary),var(--primary-2)) !important;
+    color:#fff !important;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+body.turnar-desktop-page .entity-avatar.lg img,
+body.turnar-desktop-page .entity-avatar.md img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+body.turnar-desktop-page .operator-name{
+    font-size:14px !important;
+    font-weight:950 !important;
+    line-height:1.08 !important;
+}
+
+body.turnar-desktop-page .operator-role{
+    margin-top:3px !important;
+    font-size:11px !important;
+    line-height:1.15 !important;
+}
+
+body.turnar-desktop-page .operator-badges,
+body.turnar-desktop-page .operator-row-badges{
+    gap:5px !important;
+    margin-top:6px !important;
+}
+
+body.turnar-desktop-page .operator-info{
+    gap:4px !important;
+    font-size:12px !important;
+    line-height:1.22 !important;
+}
+
+body.turnar-desktop-page .operator-info-row{
+    display:grid !important;
+    grid-template-columns:72px minmax(0,1fr) !important;
+    gap:6px !important;
+}
+
+body.turnar-desktop-page .operator-info-label{
+    min-width:0 !important;
+    font-size:11px !important;
+    color:var(--muted) !important;
+}
+
+body.turnar-desktop-page .operator-info-value{
+    font-size:12px !important;
+    font-weight:750 !important;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+body.turnar-desktop-page .operator-footer{
+    margin-top:4px !important;
+    gap:7px !important;
+}
+
+body.turnar-desktop-page .operator-actions{
+    gap:5px !important;
+}
+
+body.turnar-desktop-page .operator-actions .btn,
+body.turnar-desktop-page .operator-row-actions .btn{
+    min-height:27px !important;
+    padding:5px 9px !important;
+    font-size:10.5px !important;
+}
+
+body.turnar-desktop-page .operator-footer .status-pill{
+    min-height:24px !important;
+    padding:5px 9px !important;
+    font-size:10.5px !important;
+}
+
+/* Vista elenco più da gestionale */
+body.turnar-desktop-page .operators-list{
+    gap:7px !important;
+}
+
+body.turnar-desktop-page .operator-row{
+    grid-template-columns:minmax(260px,2fr) minmax(210px,1.2fr) minmax(140px,.8fr) minmax(90px,.5fr) minmax(160px,1fr) auto !important;
+    gap:10px !important;
+    padding:9px 10px !important;
+    border-radius:16px !important;
+}
+
+body.turnar-desktop-page .operator-row-main{
+    gap:8px !important;
+}
+
+body.turnar-desktop-page .operator-row-name{
+    font-size:13px !important;
+    line-height:1.1 !important;
+}
+
+body.turnar-desktop-page .operator-row-label{
+    font-size:9.5px !important;
+    line-height:1 !important;
+}
+
+body.turnar-desktop-page .operator-row-value{
+    font-size:11.5px !important;
+    line-height:1.2 !important;
+}
+
+/* Contatore */
+body.turnar-desktop-page #operatorsVisibleCount{
+    font-weight:950;
+    color:var(--text);
+}
+
+/* Mobile / schermi stretti */
+@media(max-width:900px){
+    body.turnar-desktop-page .toolbar{
+        align-items:stretch;
+        flex-direction:column;
+    }
+    body.turnar-desktop-page .toolbar-left,
+    body.turnar-desktop-page .toolbar-right{
+        width:100%;
+    }
+    body.turnar-desktop-page .toolbar-search,
+    body.turnar-desktop-page .field-sm{
+        width:100%;
+        max-width:none;
+        min-width:0;
+    }
+    body.turnar-desktop-page .operator-row{
+        grid-template-columns:1fr !important;
+    }
+}
