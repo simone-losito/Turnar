@@ -41,6 +41,7 @@ $navItems = [
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?php echo h($pageTitle); ?> · <?php echo h(app_name()); ?></title>
 <link rel="stylesheet" href="<?php echo h(app_url('assets/css/turnar.css')); ?>">
+<link rel="stylesheet" href="<?php echo h(app_url('assets/css/turnar-compact.css')); ?>">
 <?php echo $extraHead; ?>
 </head>
 <body class="turnar-desktop-page">
@@ -61,7 +62,7 @@ $navItems = [
                 </span>
             </a>
 
-            <nav class="topnav" aria-label="Menu principale">
+            <nav class="topnav">
                 <?php foreach ($navItems as $item): ?>
                     <?php
                     $moduleOk = function_exists('module_enabled') ? module_enabled($item['key']) : true;
@@ -77,8 +78,8 @@ $navItems = [
             </nav>
 
             <div class="topbar-actions">
-                <form method="post" action="<?php echo h(app_url('modules/settings/toggle_theme.php')); ?>" class="theme-form">
-                    <button class="theme-toggle" type="submit" title="Cambia tema">
+                <form method="post" action="<?php echo h(app_url('modules/settings/toggle_theme.php')); ?>">
+                    <button class="theme-toggle" type="submit">
                         <?php echo $resolvedThemeMode === 'dark' ? '☀️' : '🌙'; ?>
                     </button>
                 </form>
