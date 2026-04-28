@@ -3,6 +3,7 @@
 
 require_once __DIR__ . '/../../core/helpers.php';
 require_once **DIR** . '/components/op_base.php';
+require_once __DIR__ . '/components/op_badges.php';
 
 require_login();
 require_permission('operators.view');
