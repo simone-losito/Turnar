@@ -1,0 +1,23 @@
+/* assets/css/turnar-dark-tune.css */
+/* Micro tuning del tema dark: meno nero puro, più profondità e meno affaticamento */
+
+:root,
+html[data-theme="dark"]{
+    --bg-1:#060c1a;
+    --bg-2:#0b1426;
+    --bg-3:#101a33;
+    --bg-4:#162042;
+    --body-bg:#060c1a;
+    --content-card-bg:linear-gradient(180deg, rgba(22,34,72,.97), rgba(11,20,38,.96));
+    --mobile-card-bg:linear-gradient(180deg, rgba(22,34,72,.97), rgba(11,20,38,.96));
+    --line:rgba(115,154,255,.36);
+    --line-soft:rgba(115,154,255,.20);
+    --muted:#b2c1e8;
+    --shadow:0 16px 38px rgba(0,0,0,.34);
+}
+
+html[data-theme="dark"] input,
+html[data-theme="dark"] select,
+html[data-theme="dark"] textarea{
+    background:#0a1329;
+}
