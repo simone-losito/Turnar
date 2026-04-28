@@ -1,7 +1,7 @@
 // app/service-worker.js
 // Service worker Turnar PWA - cache base + notifiche push browser/iOS
 
-const TURNAR_CACHE = 'turnar-pwa-v1';
+const TURNAR_CACHE = 'turnar-pwa-v2';
 const FALLBACK_URL = './index.php';
 
 self.addEventListener('install', function (event) {
@@ -12,7 +12,9 @@ self.addEventListener('install', function (event) {
                 './index.php',
                 './login.php',
                 './calendar.php',
+                './communications.php',
                 './manifest.php',
+                './icon.php?size=180',
                 './icon.php?size=192',
                 './icon.php?size=512',
                 '../assets/css/turnar.css'
@@ -43,15 +45,10 @@ self.addEventListener('activate', function (event) {
 self.addEventListener('fetch', function (event) {
     const request = event.request;
 
-    if (request.method !== 'GET') {
-        return;
-    }
+    if (request.method !== 'GET') return;
 
     const url = new URL(request.url);
-
-    if (url.origin !== self.location.origin) {
-        return;
-    }
+    if (url.origin !== self.location.origin) return;
 
     event.respondWith(
         fetch(request)
@@ -70,6 +67,25 @@ self.addEventListener('fetch', function (event) {
     );
 });
 
+function turnarSetBadge(count) {
+    try {
+        if (self.registration && 'setAppBadge' in self.registration) {
+            const n = parseInt(count || 1, 10);
+            return self.registration.setAppBadge(Number.isFinite(n) && n > 0 ? n : 1).catch(function () {});
+        }
+    } catch (e) {}
+    return Promise.resolve();
+}
+
+function turnarClearBadge() {
+    try {
+        if (self.registration && 'clearAppBadge' in self.registration) {
+            return self.registration.clearAppBadge().catch(function () {});
+        }
+    } catch (e) {}
+    return Promise.resolve();
+}
+
 self.addEventListener('push', function (event) {
     let data = {};
 
@@ -83,18 +99,22 @@ self.addEventListener('push', function (event) {
     }
 
     const title = data.title || 'Turnar';
+    const targetUrl = data.url || './index.php';
+    const badgeCount = data.badge_count || data.count || 1;
+
     const options = {
         body: data.body || 'Hai una nuova notifica.',
         icon: data.icon || './icon.php?size=192',
         badge: data.badge || './icon.php?size=192',
-        data: {
-            url: data.url || './index.php'
-        },
+        data: { url: targetUrl },
         tag: data.tag || 'turnar-notification',
         renotify: true
     };
 
-    event.waitUntil(self.registration.showNotification(title, options));
+    event.waitUntil(Promise.all([
+        self.registration.showNotification(title, options),
+        turnarSetBadge(badgeCount)
+    ]));
 });
 
 self.addEventListener('notificationclick', function (event) {
@@ -105,19 +125,18 @@ self.addEventListener('notificationclick', function (event) {
         : './index.php';
 
     event.waitUntil(
-        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
-            for (const client of clientList) {
-                if ('focus' in client) {
-                    client.navigate(targetUrl).catch(function () {});
-                    return client.focus();
+        Promise.all([
+            turnarClearBadge(),
+            self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+                for (const client of clientList) {
+                    if ('focus' in client) {
+                        client.navigate(targetUrl).catch(function () {});
+                        return client.focus();
+                    }
                 }
-            }
-
-            if (self.clients.openWindow) {
-                return self.clients.openWindow(targetUrl);
-            }
-
-            return Promise.resolve();
-        })
+                if (self.clients.openWindow) return self.clients.openWindow(targetUrl);
+                return Promise.resolve();
+            })
+        ])
     );
 });
