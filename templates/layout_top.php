@@ -59,7 +59,19 @@ $navItems = [
             <?php foreach ($navItems as $item): ?>
                 <?php
                 [$key,$label,$href,$permission] = $item;
-                $moduleOk = function_exists('module_enabled') ? module_enabled($key) : true;
+                $moduleOk = true;
+
+if ($key !== 'settings') {
+    $modulesMatrix = json_decode((string)setting('modules_matrix', ''), true);
+
+    if (is_array($modulesMatrix) && isset($modulesMatrix[$key]) && is_array($modulesMatrix[$key])) {
+        $moduleWeb  = array_key_exists('web', $modulesMatrix[$key]) ? !empty($modulesMatrix[$key]['web']) : true;
+        $moduleMenu = array_key_exists('menu', $modulesMatrix[$key]) ? !empty($modulesMatrix[$key]['menu']) : true;
+        $moduleOk = $moduleWeb && $moduleMenu;
+    } else {
+        $moduleOk = function_exists('module_enabled') ? module_enabled($key) : true;
+    }
+}
                 $permissionOk = empty($permission) || (function_exists('can') && can($permission));
                 if (!$moduleOk || !$permissionOk) { continue; }
                 $isActive = ($activeModule === $key) || ($activeModule === 'gantt' && $key === 'reports');
