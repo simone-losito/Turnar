@@ -50,6 +50,17 @@ $settingsSections = [
         'group' => 'Sistema',
     ],
     [
+    'key' => 'email',
+    'title' => 'Email SMTP',
+    'description' => 'Configurazione posta in uscita e test invio email.',
+    'status' => 'Attiva',
+    'status_class' => 'success',
+    'icon' => '✉️',
+    'href' => app_url('modules/settings/email.php'),
+    'available' => true,
+    'group' => 'Comunicazioni',
+],
+    [
         'key' => 'assignment_notifications',
         'title' => 'Notifiche turni',
         'description' => 'Regole invio notifiche app/email quando viene assegnato un turno.',
