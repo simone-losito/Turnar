@@ -61,7 +61,9 @@ $navItems = [
                 [$key,$label,$href,$permission] = $item;
                 $moduleOk = true;
 
-if ($key !== 'settings') {
+if (function_exists('is_master') && is_master()) {
+    $moduleOk = true;
+} elseif ($key !== 'settings') {
     $modulesMatrix = json_decode((string)setting('modules_matrix', ''), true);
 
     if (is_array($modulesMatrix) && isset($modulesMatrix[$key]) && is_array($modulesMatrix[$key])) {
