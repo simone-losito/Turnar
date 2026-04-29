@@ -105,6 +105,17 @@ $settingsSections = [
         'group' => 'Operatività',
     ],
     [
+    'key' => 'modules',
+    'title' => 'Moduli software',
+    'description' => 'Attiva o disattiva moduli Web / App / Menu.',
+    'status' => 'Attiva',
+    'status_class' => 'success',
+    'icon' => '🧩',
+    'href' => app_url('modules/settings/modules.php'),
+    'available' => true,
+    'group' => 'Sistema',
+],
+    [
         'key' => 'audit',
         'title' => 'Audit',
         'description' => 'Registro operazioni e controllo attività del sistema.',
