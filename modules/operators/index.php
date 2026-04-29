@@ -1,5 +1,5 @@
 <?php
-// modules/operators/index_new.php
+// modules/operators/index.php
 
 require_once __DIR__ . '/../../core/helpers.php';
 require_once __DIR__ . '/components/op_base.php';
