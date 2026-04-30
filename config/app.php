@@ -38,7 +38,6 @@ if (!defined('APP_ROOT')) {
     define('APP_ROOT', dirname(__DIR__));
 }
 
-// URL base lato browser
 if (!defined('APP_BASE_URL')) {
     define('APP_BASE_URL', '/Turnar');
 }
@@ -47,14 +46,6 @@ if (!defined('APP_WEB_PATH')) {
     define('APP_WEB_PATH', APP_BASE_URL);
 }
 
-/*
-|--------------------------------------------------------------------------
-| APP MOBILE
-|--------------------------------------------------------------------------
-| La web-app/PWA Turnar è ospitata nella cartella /app
-| Quindi la pillola "Mobile" e tutti gli helper mobile_url()
-| devono puntare a /Turnar/app e non a /Turnar/mobile
-*/
 if (!defined('APP_MOBILE_PATH')) {
     define('APP_MOBILE_PATH', APP_BASE_URL . '/app');
 }
@@ -82,13 +73,11 @@ if (!defined('APP_FAVICON_PATH')) {
 // SESSIONE
 // --------------------------------------------------
 if (!defined('SESSION_INACTIVITY_LIMIT')) {
-    define('SESSION_INACTIVITY_LIMIT', 7200); // 2 ore
+    define('SESSION_INACTIVITY_LIMIT', 7200);
 }
 
 @ini_set('session.gc_maxlifetime', (string)SESSION_INACTIVITY_LIMIT);
 @ini_set('session.cookie_lifetime', '0');
-
-// Nome sessione dedicato a Turnar
 @session_name('TURNARSESSID');
 
 // --------------------------------------------------
@@ -104,7 +93,6 @@ if (!defined('ROLE_MASTER')) {
     define('ROLE_MASTER', 'master');
 }
 
-// Alias legacy per compatibilità con file già scritti
 if (!defined('ROLE_OPERATOR')) {
     define('ROLE_OPERATOR', ROLE_USER);
 }
@@ -125,26 +113,28 @@ if (!defined('SCOPE_GLOBAL')) {
     define('SCOPE_GLOBAL', 'global');
 }
 
-// Alias legacy per compatibilità
 if (!defined('SCOPE_AREA')) {
     define('SCOPE_AREA', SCOPE_TEAM);
 }
 
 // --------------------------------------------------
-// MODULI BASE ATTIVI
+// MODULI BASE TURNAR
 // --------------------------------------------------
 $GLOBALS['TURNAR_MODULES'] = [
     'dashboard'      => true,
-    'users'          => true,
     'operators'      => true,
     'destinations'   => true,
     'assignments'    => true,
     'calendar'       => true,
-    'notifications'  => true,
     'communications' => true,
     'reports'        => true,
+    'gantt'          => true,
+    'users'          => true,
     'settings'       => true,
     'mobile'         => true,
+    'badges'         => true,
+    'push'           => true,
+    'email'          => true,
 ];
 
 // --------------------------------------------------
@@ -208,6 +198,91 @@ if (!function_exists('app_modules')) {
     }
 }
 
+// --------------------------------------------------
+// HELPER MODULI SOFTWARE
+// --------------------------------------------------
+if (!function_exists('turnar_default_modules_matrix')) {
+    function turnar_default_modules_matrix(): array
+    {
+        $defaults = [];
+
+        foreach (app_modules() as $key => $enabled) {
+            $defaults[$key] = [
+                'web'  => !empty($enabled) ? 1 : 0,
+                'app'  => in_array($key, ['dashboard', 'assignments', 'calendar', 'communications', 'mobile', 'push'], true) ? 1 : 0,
+                'menu' => !empty($enabled) ? 1 : 0,
+            ];
+        }
+
+        $defaults['settings'] = ['web' => 1, 'app' => 0, 'menu' => 1];
+
+        return $defaults;
+    }
+}
+
+if (!function_exists('turnar_modules_matrix')) {
+    function turnar_modules_matrix(): array
+    {
+        $defaults = turnar_default_modules_matrix();
+
+        if (!function_exists('setting_string')) {
+            return $defaults;
+        }
+
+        $raw = trim(setting_string('modules_matrix', ''));
+        if ($raw === '') {
+            return $defaults;
+        }
+
+        $decoded = json_decode($raw, true);
+        if (!is_array($decoded)) {
+            return $defaults;
+        }
+
+        foreach ($defaults as $key => $defaultState) {
+            if (!isset($decoded[$key]) || !is_array($decoded[$key])) {
+                $decoded[$key] = $defaultState;
+                continue;
+            }
+
+            $decoded[$key] = [
+                'web'  => array_key_exists('web', $decoded[$key]) ? (int)!empty($decoded[$key]['web']) : (int)$defaultState['web'],
+                'app'  => array_key_exists('app', $decoded[$key]) ? (int)!empty($decoded[$key]['app']) : (int)$defaultState['app'],
+                'menu' => array_key_exists('menu', $decoded[$key]) ? (int)!empty($decoded[$key]['menu']) : (int)$defaultState['menu'],
+            ];
+        }
+
+        $decoded['settings'] = ['web' => 1, 'app' => 0, 'menu' => 1];
+
+        return $decoded;
+    }
+}
+
+if (!function_exists('module_state')) {
+    function module_state(string $key): array
+    {
+        $key = trim($key);
+        $matrix = turnar_modules_matrix();
+
+        if ($key === '') {
+            return ['web' => 0, 'app' => 0, 'menu' => 0];
+        }
+
+        if ($key === 'settings') {
+            return ['web' => 1, 'app' => 0, 'menu' => 1];
+        }
+
+        $defaults = turnar_default_modules_matrix();
+        $state = $matrix[$key] ?? ($defaults[$key] ?? ['web' => 1, 'app' => 0, 'menu' => 1]);
+
+        return [
+            'web'  => !empty($state['web']) ? 1 : 0,
+            'app'  => !empty($state['app']) ? 1 : 0,
+            'menu' => !empty($state['menu']) ? 1 : 0,
+        ];
+    }
+}
+
 if (!function_exists('module_enabled')) {
     function module_enabled(string $key): bool
     {
@@ -216,15 +291,52 @@ if (!function_exists('module_enabled')) {
             return false;
         }
 
-        if (function_exists('setting_bool')) {
-            $dynamicKey = 'module_' . $key . '_enabled';
-            $defaultModules = app_modules();
-            $default = !empty($defaultModules[$key]);
-            return setting_bool($dynamicKey, $default);
+        if (function_exists('is_master') && is_master()) {
+            return true;
         }
 
-        $mods = app_modules();
-        return !empty($mods[$key]);
+        if ($key === 'settings') {
+            return true;
+        }
+
+        return !empty(module_state($key)['web']);
+    }
+}
+
+if (!function_exists('module_app_enabled')) {
+    function module_app_enabled(string $key): bool
+    {
+        $key = trim($key);
+        if ($key === '') {
+            return false;
+        }
+
+        if (function_exists('is_master') && is_master()) {
+            return true;
+        }
+
+        return !empty(module_state($key)['app']);
+    }
+}
+
+if (!function_exists('module_menu_visible')) {
+    function module_menu_visible(string $key): bool
+    {
+        $key = trim($key);
+        if ($key === '') {
+            return false;
+        }
+
+        if (function_exists('is_master') && is_master()) {
+            return true;
+        }
+
+        if ($key === 'settings') {
+            return true;
+        }
+
+        $state = module_state($key);
+        return !empty($state['web']) && !empty($state['menu']);
     }
 }
 
