@@ -1,10 +1,17 @@
 <?php
 // modules/users/roles.php
+// Gestione permessi ruoli - accesso SOLO Master
 
 require_once __DIR__ . '/../../core/helpers.php';
 
 require_login();
 require_permission('users.permissions');
+
+// 🔒 SOLO MASTER
+if (!function_exists('is_master') || !is_master()) {
+    http_response_code(403);
+    exit('Accesso negato: solo un utente Master può gestire i permessi ruoli.');
+}
 
 $pageTitle    = 'Permessi ruoli';
 $pageSubtitle = 'Gestione dei permessi base per ruolo';
@@ -140,10 +147,7 @@ if (is_post()) {
         $del->execute();
         $del->close();
 
-        $ins = $db->prepare("
-            INSERT INTO role_permissions (role, permission_id, is_allowed)
-            VALUES (?, ?, ?)
-        ");
+        $ins = $db->prepare("\n            INSERT INTO role_permissions (role, permission_id, is_allowed)\n            VALUES (?, ?, ?)\n        ");
         if (!$ins) {
             throw new RuntimeException('Errore preparazione salvataggio permessi ruoli.');
         }
@@ -173,221 +177,41 @@ $saved = (int)get('saved', 0) === 1;
 require_once __DIR__ . '/../../templates/layout_top.php';
 ?>
 
-<style>
-.role-page-wrap{
-    display:grid;
-    gap:18px;
-}
+<div class="content-card" style="max-width:1100px;">
 
-.role-tabs{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-}
+    <?php if ($saved): ?>
+        <div class="alert-success">Permessi ruoli salvati correttamente.</div>
+    <?php endif; ?>
 
-.role-tab-btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    min-height:42px;
-    padding:10px 16px;
-    border-radius:999px;
-    border:1px solid var(--line);
-    background:color-mix(in srgb, var(--bg-3) 88%, transparent);
-    color:var(--text);
-    cursor:pointer;
-    font-weight:700;
-    font-size:13px;
-    transition:transform .18s ease, border-color .18s ease, background .18s ease;
-}
-
-.role-tab-btn:hover{
-    transform:translateY(-1px);
-    border-color:color-mix(in srgb, var(--primary) 35%, transparent);
-}
-
-.role-tab-btn.active{
-    background:linear-gradient(135deg, var(--primary), var(--primary-2));
-    border-color:color-mix(in srgb, var(--primary) 60%, transparent);
-    color:#fff;
-    box-shadow:0 12px 26px rgba(0,0,0,.16);
-}
-
-.role-panel{
-    display:none;
-    gap:16px;
-}
-
-.role-panel.active{
-    display:grid;
-}
-
-.permission-group{
-    border:1px solid var(--line);
-    border-radius:20px;
-    padding:16px;
-    background:color-mix(in srgb, var(--bg-3) 82%, transparent);
-    box-shadow:var(--shadow);
-}
-
-.permission-group-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    flex-wrap:wrap;
-    margin-bottom:12px;
-}
-
-.permission-group-title{
-    font-size:15px;
-    font-weight:800;
-    color:var(--text);
-}
-
-.permission-grid{
-    display:grid;
-    gap:10px;
-}
-
-.permission-row{
-    display:grid;
-    grid-template-columns:minmax(220px, 1fr) auto;
-    gap:12px;
-    align-items:center;
-    padding:10px 12px;
-    border-radius:14px;
-    background:color-mix(in srgb, var(--bg-3) 78%, transparent);
-    border:1px solid color-mix(in srgb, var(--line) 82%, transparent);
-}
-
-.permission-main{
-    min-width:0;
-}
-
-.permission-title{
-    font-size:13px;
-    font-weight:700;
-    color:var(--text);
-}
-
-.permission-help{
-    margin-top:4px;
-    color:var(--muted);
-    font-size:11px;
-    word-break:break-word;
-}
-
-.permission-check{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding:8px 12px;
-    border-radius:999px;
-    border:1px solid var(--line);
-    background:color-mix(in srgb, var(--bg-3) 88%, transparent);
-    font-size:12px;
-    font-weight:700;
-    color:var(--text);
-}
-
-.permission-check input[type="checkbox"]{
-    width:auto;
-}
-
-.actions-row{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-}
-
-@media (max-width: 900px){
-    .permission-row{
-        grid-template-columns:1fr;
-    }
-}
-</style>
-
-<?php if ($saved): ?>
-    <div class="alert-success">Permessi ruoli salvati correttamente.</div>
-<?php endif; ?>
-
-<?php if (!empty($errors)): ?>
-    <div class="alert-error">
-        <strong>Controlla questi punti:</strong>
-        <div class="mt-2">
+    <?php if (!empty($errors)): ?>
+        <div class="alert-error">
             <?php foreach ($errors as $error): ?>
                 <div>• <?php echo h($error); ?></div>
             <?php endforeach; ?>
         </div>
-    </div>
-<?php endif; ?>
+    <?php endif; ?>
 
-<div class="role-page-wrap">
-    <div class="info-box">
-        Qui definisci i permessi <strong>base</strong> dei ruoli <strong>User</strong>, <strong>Manager</strong> e <strong>Master</strong>.<br>
-        I permessi specifici impostati dentro il singolo utente restano comunque come override.
+    <div class="info-box" style="margin-bottom:14px;">
+        Configura i permessi base dei ruoli. Il ruolo Master ha sempre accesso totale.
     </div>
 
-    <form method="post" id="rolesForm">
-        <div class="role-tabs">
-            <?php foreach ($roles as $index => $role): ?>
-                <button
-                    type="button"
-                    class="role-tab-btn <?php echo $index === 0 ? 'active' : ''; ?>"
-                    data-role-tab="<?php echo h($role); ?>"
-                >
-                    <?php echo h(role_label($role)); ?>
-                </button>
-            <?php endforeach; ?>
-        </div>
-
-        <?php foreach ($roles as $index => $role): ?>
-            <div class="role-panel <?php echo $index === 0 ? 'active' : ''; ?>" data-role-panel="<?php echo h($role); ?>">
-                <div class="preset-bar">
-                    <button type="button" class="preset-btn" data-role-preset="<?php echo h($role); ?>" data-preset="none">Togli tutto</button>
-                    <button type="button" class="preset-btn" data-role-preset="<?php echo h($role); ?>" data-preset="readonly">Solo lettura</button>
-                    <button type="button" class="preset-btn" data-role-preset="<?php echo h($role); ?>" data-preset="manager">Manager operativo</button>
-                    <button type="button" class="preset-btn" data-role-preset="<?php echo h($role); ?>" data-preset="full">Accesso totale</button>
-                </div>
+    <form method="post">
+        <?php foreach ($roles as $role): ?>
+            <div class="entity-card" style="margin-bottom:16px;">
+                <h3><?php echo h(role_label($role)); ?></h3>
 
                 <?php foreach ($permissionGroups as $group => $groupPermissions): ?>
-                    <div class="permission-group" data-role="<?php echo h($role); ?>" data-group="<?php echo h($group); ?>">
-                        <div class="permission-group-head">
-                            <div class="permission-group-title"><?php echo h(permission_group_label_role_page($group)); ?></div>
+                    <div style="margin-top:10px;">
+                        <strong><?php echo h(permission_group_label_role_page($group)); ?></strong>
 
-                            <div class="preset-bar">
-                                <button type="button" class="preset-btn group-btn" data-group-role="<?php echo h($role); ?>" data-group="<?php echo h($group); ?>" data-group-action="check">Consenti gruppo</button>
-                                <button type="button" class="preset-btn group-btn" data-group-role="<?php echo h($role); ?>" data-group="<?php echo h($group); ?>" data-group-action="uncheck">Nega gruppo</button>
-                            </div>
-                        </div>
-
-                        <div class="permission-grid">
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;">
                             <?php foreach ($groupPermissions as $perm): ?>
-                                <?php
-                                $permId = (int)$perm['id'];
-                                $code = (string)$perm['code'];
-                                ?>
-                                <div class="permission-row">
-                                    <div class="permission-main">
-                                        <div class="permission-title"><?php echo h(permission_action_label_role_page($code)); ?></div>
-                                        <div class="permission-help"><?php echo h($code); ?></div>
-                                    </div>
-
-                                    <label class="permission-check">
-                                        <input
-                                            type="checkbox"
-                                            name="<?php echo h('perm_' . $role . '_' . $permId); ?>"
-                                            value="1"
-                                            class="role-permission-check"
-                                            data-role="<?php echo h($role); ?>"
-                                            data-group="<?php echo h($group); ?>"
-                                            data-permission-code="<?php echo h($code); ?>"
-                                            <?php echo !empty($rolePermissionStates[$role][$permId]) ? 'checked' : ''; ?>
-                                        >
-                                        <span>Consentito</span>
-                                    </label>
-                                </div>
+                                <?php $permId = (int)$perm['id']; ?>
+                                <label class="mini-pill">
+                                    <input type="checkbox" name="perm_<?php echo h($role . '_' . $permId); ?>" value="1"
+                                        <?php echo !empty($rolePermissionStates[$role][$permId]) ? 'checked' : ''; ?>>
+                                    <?php echo h(permission_action_label_role_page($perm['code'])); ?>
+                                </label>
                             <?php endforeach; ?>
                         </div>
                     </div>
@@ -395,110 +219,10 @@ require_once __DIR__ . '/../../templates/layout_top.php';
             </div>
         <?php endforeach; ?>
 
-        <div class="actions-row mt-4">
-            <button type="submit" class="btn btn-primary">Salva permessi ruoli</button>
-            <a href="<?php echo h(app_url('modules/users/index.php')); ?>" class="btn btn-ghost">Torna agli utenti</a>
-        </div>
+        <button class="btn btn-primary">Salva permessi</button>
+        <a href="<?php echo h(app_url('modules/users/index.php')); ?>" class="btn btn-ghost">Torna</a>
     </form>
+
 </div>
-
-<script>
-(function () {
-    const tabButtons = Array.from(document.querySelectorAll('[data-role-tab]'));
-    const panels = Array.from(document.querySelectorAll('[data-role-panel]'));
-    const presetButtons = Array.from(document.querySelectorAll('[data-role-preset]'));
-    const groupButtons = Array.from(document.querySelectorAll('.group-btn'));
-    const checks = Array.from(document.querySelectorAll('.role-permission-check'));
-
-    function activateRole(role) {
-        tabButtons.forEach(function (btn) {
-            btn.classList.toggle('active', btn.dataset.roleTab === role);
-        });
-
-        panels.forEach(function (panel) {
-            panel.classList.toggle('active', panel.dataset.rolePanel === role);
-        });
-    }
-
-    tabButtons.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            activateRole(btn.dataset.roleTab || '');
-        });
-    });
-
-    function getRoleChecks(role) {
-        return checks.filter(function (check) {
-            return (check.dataset.role || '') === role;
-        });
-    }
-
-    function setRoleChecks(role, fn) {
-        getRoleChecks(role).forEach(function (check) {
-            check.checked = !!fn(check);
-        });
-    }
-
-    presetButtons.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const role = btn.dataset.rolePreset || '';
-            const preset = btn.dataset.preset || '';
-
-            if (!role || !preset) {
-                return;
-            }
-
-            if (preset === 'none') {
-                setRoleChecks(role, function () { return false; });
-                return;
-            }
-
-            if (preset === 'full') {
-                setRoleChecks(role, function () { return true; });
-                return;
-            }
-
-            if (preset === 'readonly') {
-                setRoleChecks(role, function (check) {
-                    const code = (check.dataset.permissionCode || '').toLowerCase();
-                    return code.endsWith('.view');
-                });
-                return;
-            }
-
-            if (preset === 'manager') {
-                setRoleChecks(role, function (check) {
-                    const code = (check.dataset.permissionCode || '').toLowerCase();
-
-                    if (code.startsWith('dashboard.')) return true;
-                    if (code.startsWith('operators.') && !code.endsWith('.delete')) return true;
-                    if (code.startsWith('destinations.') && !code.endsWith('.delete')) return true;
-                    if (code.startsWith('assignments.')) return true;
-                    if (code.startsWith('calendar.')) return true;
-                    if (code.startsWith('reports.')) return true;
-                    if (code.startsWith('communications.')) return true;
-                    if (code === 'users.view') return true;
-                    if (code === 'settings.view') return true;
-
-                    return false;
-                });
-            }
-        });
-    });
-
-    groupButtons.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const role = btn.dataset.groupRole || '';
-            const group = btn.dataset.group || '';
-            const action = btn.dataset.groupAction || 'check';
-
-            checks.forEach(function (check) {
-                if ((check.dataset.role || '') === role && (check.dataset.group || '') === group) {
-                    check.checked = action === 'check';
-                }
-            });
-        });
-    });
-})();
-</script>
 
 <?php require_once __DIR__ . '/../../templates/layout_bottom.php'; ?>
