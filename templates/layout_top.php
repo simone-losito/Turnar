@@ -75,6 +75,12 @@ if (function_exists('is_master') && is_master()) {
     }
 }
                 $permissionOk = empty($permission) || (function_exists('can') && can($permission));
+
+if (function_exists('is_user') && is_user()) {
+    if (!in_array($key, ['dashboard','assignments','communications','mobile'])) {
+        $permissionOk = false;
+    }
+}
                 if (!$moduleOk || !$permissionOk) { continue; }
                 $isActive = ($activeModule === $key) || ($activeModule === 'gantt' && $key === 'reports');
                 ?>
