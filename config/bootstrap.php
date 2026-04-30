@@ -102,11 +102,38 @@ if (!function_exists('json_response')) {
 // --------------------------------------------------
 // MODULI
 // --------------------------------------------------
+if (!function_exists('module_access_denied')) {
+    function module_access_denied(string $moduleKey): void
+    {
+        http_response_code(403);
+        exit('Modulo non attivo: ' . h($moduleKey));
+    }
+}
+
 if (!function_exists('require_module')) {
     function require_module(string $moduleKey): void
     {
-        if (!module_enabled($moduleKey)) {
-            die('Modulo non attivo: ' . h($moduleKey));
+        $moduleKey = trim($moduleKey);
+
+        if ($moduleKey === '') {
+            module_access_denied('sconosciuto');
         }
+
+        if (!function_exists('module_enabled') || !module_enabled($moduleKey)) {
+            module_access_denied($moduleKey);
+        }
+    }
+}
+
+if (!function_exists('require_active_module')) {
+    function require_active_module(?string $moduleKey): void
+    {
+        $moduleKey = trim((string)$moduleKey);
+
+        if ($moduleKey === '') {
+            return;
+        }
+
+        require_module($moduleKey);
     }
 }
