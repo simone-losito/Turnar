@@ -212,6 +212,16 @@ require_once __DIR__ . '/../../templates/layout_top.php';
     flex-wrap:wrap;
 }
 
+.manager-lock-note{
+    font-size:11px;
+    color:var(--muted);
+    font-weight:800;
+    padding:7px 10px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:color-mix(in srgb,var(--bg-4) 65%,transparent);
+}
+
 @media (max-width: 1280px){
     .user-row{
         grid-template-columns:1fr;
@@ -345,6 +355,14 @@ require_once __DIR__ . '/../../templates/layout_top.php';
                         ]);
 
                         $hasWebApp = $web && $app;
+
+                        $targetIsMaster = $role === ROLE_MASTER;
+                        $targetIsSensitive = $targetIsMaster || $admin;
+                        $canManageThisUser = true;
+
+                        if (function_exists('is_manager') && is_manager() && $targetIsSensitive) {
+                            $canManageThisUser = false;
+                        }
                     ?>
 
                     <div
@@ -424,13 +442,13 @@ require_once __DIR__ . '/../../templates/layout_top.php';
                                     </a>
                                 <?php endif; ?>
 
-                                <?php if (can('users.edit')): ?>
+                                <?php if (can('users.edit') && $canManageThisUser): ?>
                                     <a href="<?php echo h(app_url('modules/users/edit.php?id=' . $id)); ?>" class="btn btn-secondary btn-sm">
                                         Modifica
                                     </a>
                                 <?php endif; ?>
 
-                                <?php if (can('users.delete')): ?>
+                                <?php if (can('users.delete') && $canManageThisUser): ?>
                                     <a
                                         href="<?php echo h(app_url('modules/users/delete.php?id=' . $id)); ?>"
                                         class="btn btn-danger btn-sm"
@@ -438,6 +456,10 @@ require_once __DIR__ . '/../../templates/layout_top.php';
                                     >
                                         Elimina
                                     </a>
+                                <?php endif; ?>
+
+                                <?php if (!$canManageThisUser): ?>
+                                    <span class="manager-lock-note">Protetto</span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -504,6 +526,14 @@ require_once __DIR__ . '/../../templates/layout_top.php';
                         ]);
 
                         $hasWebApp = $web && $app;
+
+                        $targetIsMaster = $role === ROLE_MASTER;
+                        $targetIsSensitive = $targetIsMaster || $admin;
+                        $canManageThisUser = true;
+
+                        if (function_exists('is_manager') && is_manager() && $targetIsSensitive) {
+                            $canManageThisUser = false;
+                        }
                     ?>
 
                     <div
@@ -540,6 +570,10 @@ require_once __DIR__ . '/../../templates/layout_top.php';
 
                                     <?php if ($mustChange): ?>
                                         <span class="mini-pill password-flag">Cambio password</span>
+                                    <?php endif; ?>
+
+                                    <?php if (!$canManageThisUser): ?>
+                                        <span class="mini-pill password-flag">Protetto</span>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -610,13 +644,13 @@ require_once __DIR__ . '/../../templates/layout_top.php';
                                 </a>
                             <?php endif; ?>
 
-                            <?php if (can('users.edit')): ?>
+                            <?php if (can('users.edit') && $canManageThisUser): ?>
                                 <a href="<?php echo h(app_url('modules/users/edit.php?id=' . $id)); ?>" class="btn btn-secondary btn-sm">
                                     Modifica
                                 </a>
                             <?php endif; ?>
 
-                            <?php if (can('users.delete')): ?>
+                            <?php if (can('users.delete') && $canManageThisUser): ?>
                                 <a
                                     href="<?php echo h(app_url('modules/users/delete.php?id=' . $id)); ?>"
                                     class="btn btn-danger btn-sm"
@@ -624,6 +658,10 @@ require_once __DIR__ . '/../../templates/layout_top.php';
                                 >
                                     Elimina
                                 </a>
+                            <?php endif; ?>
+
+                            <?php if (!$canManageThisUser): ?>
+                                <span class="manager-lock-note">Protetto</span>
                             <?php endif; ?>
                         </div>
                     </div>
