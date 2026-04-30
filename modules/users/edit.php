@@ -1,9 +1,9 @@
 <?php
-// modules/users/edit.php
-
 require_once __DIR__ . '/../../core/helpers.php';
 
 require_login();
+
+$db = db_connect();
 
 $id = (int)get('id', 0);
 $isEdit = $id > 0;
@@ -14,142 +14,223 @@ if ($isEdit) {
     require_permission('users.create');
 }
 
-$pageTitle    = $isEdit ? 'Gestione Utente' : 'Nuovo utente';
-$pageSubtitle = 'Gestione accesso, ruolo, scope e permessi';
+$pageTitle    = $isEdit ? 'Modifica utente' : 'Nuovo utente';
+$pageSubtitle = 'Gestione accesso, ruolo e permessi';
 $activeModule = 'users';
 
-$db = db_connect();
 $errors = [];
 
 /* =========================
-   BLOCCO MANAGER SICUREZZA
+   BLOCCO SICUREZZA MANAGER
    ========================= */
-$targetExistingUser = null;
+$existingUser = null;
 
 if ($isEdit) {
-    $stmtGuard = $db->prepare("SELECT id, role, is_administrative FROM users WHERE id = ? LIMIT 1");
-    if ($stmtGuard) {
-        $stmtGuard->bind_param('i', $id);
-        $stmtGuard->execute();
-        $resGuard = $stmtGuard->get_result();
-        $targetExistingUser = $resGuard ? $resGuard->fetch_assoc() : null;
-        $stmtGuard->close();
+    $stmt = $db->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $existingUser = $res ? $res->fetch_assoc() : null;
+    $stmt->close();
+
+    if (!$existingUser) {
+        redirect(app_url('modules/users/index.php'));
     }
 
     if (
-        function_exists('is_manager') &&
         is_manager() &&
-        $targetExistingUser &&
         (
-            (string)($targetExistingUser['role'] ?? '') === ROLE_MASTER ||
-            !empty($targetExistingUser['is_administrative'])
+            $existingUser['role'] === ROLE_MASTER ||
+            !empty($existingUser['is_administrative'])
         )
     ) {
         http_response_code(403);
-        exit('Accesso negato: un manager non può modificare utenti Master o amministrativi.');
+        exit('Accesso negato: un manager non può modificare utenti sensibili.');
     }
-}
-/* ========================= */
-
-function h($value): string
-{
-    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-}
-
-function users_safe_redirect(string $url): void
-{
-    if (!headers_sent()) {
-        header('Location: ' . $url);
-    }
-    exit;
-}
-
-function users_checkbox(string $key): int
-{
-    return isset($_POST[$key]) ? 1 : 0;
 }
 
 /* =========================
-   VALIDAZIONE MANAGER (POST)
+   SALVATAGGIO
    ========================= */
-function users_validate_manager_limits(array $form, array &$errors): void
-{
-    if (function_exists('is_manager') && is_manager()) {
-
-        if ($form['role'] === ROLE_MASTER) {
-            $errors[] = 'Un manager non può assegnare il ruolo Master.';
-        }
-
-        if (!empty($form['is_administrative'])) {
-            $errors[] = 'Un manager non può rendere un utente amministrativo.';
-        }
-
-        if ($form['scope'] === SCOPE_GLOBAL) {
-            $errors[] = 'Un manager non può assegnare scope Global.';
-        }
-    }
-}
-/* ========================= */
-
-function users_username_exists(mysqli $db, string $username, int $excludeId = 0): bool
-{
-    $username = trim($username);
-    if ($username === '') return false;
-
-    if ($excludeId > 0) {
-        $stmt = $db->prepare("SELECT id FROM users WHERE username = ? AND id <> ? LIMIT 1");
-        $stmt->bind_param('si', $username, $excludeId);
-    } else {
-        $stmt = $db->prepare("SELECT id FROM users WHERE username = ? LIMIT 1");
-        $stmt->bind_param('s', $username);
-    }
-
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $exists = $res && $res->fetch_assoc();
-    $stmt->close();
-
-    return (bool)$exists;
-}
-
-function users_email_exists(mysqli $db, string $email, int $excludeId = 0): bool
-{
-    $email = trim($email);
-    if ($email === '') return false;
-
-    if ($excludeId > 0) {
-        $stmt = $db->prepare("SELECT id FROM users WHERE email = ? AND id <> ? LIMIT 1");
-        $stmt->bind_param('si', $email, $excludeId);
-    } else {
-        $stmt = $db->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
-        $stmt->bind_param('s', $email);
-    }
-
-    $stmt->execute();
-    $res = $stmt->get_result();
-    $exists = $res && $res->fetch_assoc();
-    $stmt->close();
-
-    return (bool)$exists;
-}
-
-/* =========================
-   SALVATAGGIO (PATCH)
-   ========================= */
-
 if (is_post()) {
 
-    $form['role'] = normalize_role((string)post('role', ROLE_USER));
-    $form['scope'] = normalize_scope((string)post('scope', SCOPE_SELF));
-    $form['is_administrative'] = users_checkbox('is_administrative');
+    $username = trim((string)post('username'));
+    $email    = trim((string)post('email'));
+    $password = trim((string)post('password'));
 
-    /* 🔥 BLOCCO MANAGER */
-    users_validate_manager_limits($form, $errors);
+    $role  = normalize_role(post('role', ROLE_USER));
+    $scope = normalize_scope(post('scope', SCOPE_SELF));
+
+    $isActive = isset($_POST['is_active']) ? 1 : 0;
+    $isAdmin  = isset($_POST['is_administrative']) ? 1 : 0;
+    $web      = isset($_POST['can_login_web']) ? 1 : 0;
+    $app      = isset($_POST['can_login_app']) ? 1 : 0;
+
+    // 🔐 LIMITI MANAGER
+    if (is_manager()) {
+        if ($role === ROLE_MASTER) {
+            $errors[] = 'Un manager non può assegnare ruolo Master.';
+        }
+        if ($isAdmin) {
+            $errors[] = 'Un manager non può rendere amministrativo.';
+        }
+        if ($scope === SCOPE_GLOBAL) {
+            $errors[] = 'Un manager non può usare scope globale.';
+        }
+    }
+
+    if ($username === '') {
+        $errors[] = 'Username obbligatorio.';
+    }
+
+    if (empty($errors)) {
+
+        if ($isEdit) {
+
+            $sql = "
+                UPDATE users SET
+                    username = ?,
+                    email = ?,
+                    role = ?,
+                    scope = ?,
+                    is_active = ?,
+                    is_administrative = ?,
+                    can_login_web = ?,
+                    can_login_app = ?
+                WHERE id = ?
+            ";
+
+            $stmt = $db->prepare($sql);
+            $stmt->bind_param(
+                'ssssiiiii',
+                $username,
+                $email,
+                $role,
+                $scope,
+                $isActive,
+                $isAdmin,
+                $web,
+                $app,
+                $id
+            );
+
+            $stmt->execute();
+            $stmt->close();
+
+            // password opzionale
+            if ($password !== '') {
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+
+                $stmt = $db->prepare("UPDATE users SET password = ? WHERE id = ?");
+                $stmt->bind_param('si', $hash, $id);
+                $stmt->execute();
+                $stmt->close();
+            }
+
+        } else {
+
+            if ($password === '') {
+                $errors[] = 'Password obbligatoria.';
+            } else {
+
+                $hash = password_hash($password, PASSWORD_DEFAULT);
+
+                $stmt = $db->prepare("
+                    INSERT INTO users
+                    (username, email, password, role, scope, is_active, is_administrative, can_login_web, can_login_app)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ");
+
+                $stmt->bind_param(
+                    'sssssiiii',
+                    $username,
+                    $email,
+                    $hash,
+                    $role,
+                    $scope,
+                    $isActive,
+                    $isAdmin,
+                    $web,
+                    $app
+                );
+
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+
+        if (empty($errors)) {
+            redirect(app_url('modules/users/index.php?saved=1'));
+        }
+    }
 }
 
 /* =========================
-   RESTO FILE NON TOCCATO
+   DEFAULT FORM
    ========================= */
+$user = $existingUser ?? [
+    'username' => '',
+    'email' => '',
+    'role' => ROLE_USER,
+    'scope' => SCOPE_SELF,
+    'is_active' => 1,
+    'is_administrative' => 0,
+    'can_login_web' => 1,
+    'can_login_app' => 0
+];
 
 require_once __DIR__ . '/../../templates/layout_top.php';
 ?>
+
+<div class="content-card" style="max-width:700px">
+
+    <h2><?php echo $isEdit ? 'Modifica utente' : 'Nuovo utente'; ?></h2>
+
+    <?php if (!empty($errors)): ?>
+        <div class="alert-error">
+            <?php foreach ($errors as $e): ?>
+                <div>• <?php echo htmlspecialchars($e); ?></div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <form method="post" class="form-grid">
+
+        <label>Username</label>
+        <input type="text" name="username" value="<?php echo h($user['username']); ?>">
+
+        <label>Email</label>
+        <input type="email" name="email" value="<?php echo h($user['email']); ?>">
+
+        <label>Password <?php echo $isEdit ? '(lascia vuota per non cambiare)' : ''; ?></label>
+        <input type="password" name="password">
+
+        <label>Ruolo</label>
+        <select name="role">
+            <option value="user" <?php if ($user['role'] === ROLE_USER) echo 'selected'; ?>>User</option>
+            <option value="manager" <?php if ($user['role'] === ROLE_MANAGER) echo 'selected'; ?>>Manager</option>
+            <option value="master" <?php if ($user['role'] === ROLE_MASTER) echo 'selected'; ?>>Master</option>
+        </select>
+
+        <label>Scope</label>
+        <select name="scope">
+            <option value="self" <?php if ($user['scope'] === SCOPE_SELF) echo 'selected'; ?>>Self</option>
+            <option value="team" <?php if ($user['scope'] === SCOPE_TEAM) echo 'selected'; ?>>Team</option>
+            <option value="global" <?php if ($user['scope'] === SCOPE_GLOBAL) echo 'selected'; ?>>Global</option>
+        </select>
+
+        <label><input type="checkbox" name="is_active" <?php if ($user['is_active']) echo 'checked'; ?>> Attivo</label>
+        <label><input type="checkbox" name="is_administrative" <?php if ($user['is_administrative']) echo 'checked'; ?>> Amministrativo</label>
+        <label><input type="checkbox" name="can_login_web" <?php if ($user['can_login_web']) echo 'checked'; ?>> Accesso Web</label>
+        <label><input type="checkbox" name="can_login_app" <?php if ($user['can_login_app']) echo 'checked'; ?>> Accesso App</label>
+
+        <div style="margin-top:15px;">
+            <button class="btn btn-primary">Salva</button>
+            <a href="<?php echo app_url('modules/users/index.php'); ?>" class="btn btn-ghost">Annulla</a>
+        </div>
+
+    </form>
+
+</div>
+
+<?php require_once __DIR__ . '/../../templates/layout_bottom.php'; ?>
