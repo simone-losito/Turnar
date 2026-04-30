@@ -1,9 +1,8 @@
 /* assets/css/planning-fix.css */
-/* FIX EMERGENZA PLANNING - stabilizza grafica prima del drag */
+/* FIX DEFINITIVO PLANNING - colonna operatori stabile e leggibile */
 
-/* Layout colonne */
 .planning-layout{
-    grid-template-columns: 330px minmax(520px,1fr) 330px !important;
+    grid-template-columns:330px minmax(520px,1fr) 330px !important;
     gap:14px !important;
     align-items:start !important;
 }
@@ -27,26 +26,29 @@
 .planning-scroll{
     display:flex !important;
     flex-direction:column !important;
-    gap:8px !important;
+    gap:7px !important;
     max-height:620px !important;
     overflow-y:auto !important;
     overflow-x:hidden !important;
     padding:0 6px 0 0 !important;
 }
 
-/* Operatori: blocca definitivamente accavallamenti */
+/* COLONNA OPERATORI: una riga pulita per operatore */
 .operator-card,
 .planning-panel .operator-card{
-    display:block !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
     position:relative !important;
     width:100% !important;
-    height:auto !important;
-    min-height:74px !important;
+    min-height:34px !important;
+    height:34px !important;
+    max-height:34px !important;
     margin:0 !important;
-    padding:10px 12px !important;
-    border-radius:14px !important;
+    padding:0 11px !important;
+    border-radius:999px !important;
     overflow:hidden !important;
-    line-height:1.25 !important;
+    line-height:1 !important;
     box-sizing:border-box !important;
 }
 
@@ -55,17 +57,18 @@
     position:static !important;
     float:none !important;
     transform:none !important;
-    max-width:100% !important;
     box-sizing:border-box !important;
 }
 
 .operator-name,
 .planning-panel .operator-name{
     display:block !important;
-    margin:0 0 5px !important;
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    margin:0 !important;
     padding:0 !important;
-    font-size:13px !important;
-    line-height:1.15 !important;
+    font-size:12.5px !important;
+    line-height:34px !important;
     font-weight:900 !important;
     color:var(--text) !important;
     white-space:nowrap !important;
@@ -73,51 +76,19 @@
     text-overflow:ellipsis !important;
 }
 
+/* Nel planning compatto nascondo dettagli che causavano casino grafico */
 .operator-meta,
-.planning-panel .operator-meta{
-    display:block !important;
-    margin:0 !important;
-    padding:0 !important;
-    font-size:11px !important;
-    line-height:1.25 !important;
-    color:var(--muted) !important;
-    white-space:normal !important;
-    overflow:hidden !important;
-}
-
-.operator-meta br{
-    display:none !important;
-}
-
 .operator-card .badge-row,
 .operator-card .operator-badges,
-.operator-card .meta-row{
-    display:flex !important;
-    flex-wrap:wrap !important;
-    align-items:center !important;
-    gap:5px !important;
-    margin:6px 0 0 !important;
-    padding:0 !important;
-}
-
+.operator-card .meta-row,
 .operator-card .mini-badge,
 .operator-card .pill,
 .operator-card .badge,
 .operator-card [class*="badge"],
 .operator-card [class*="pill"]{
-    display:inline-flex !important;
-    width:auto !important;
-    min-height:18px !important;
-    height:auto !important;
-    padding:3px 7px !important;
-    margin:0 !important;
-    border-radius:999px !important;
-    font-size:9.5px !important;
-    line-height:1 !important;
-    white-space:nowrap !important;
+    display:none !important;
 }
 
-/* Destinazioni */
 .destination-card,
 .planning-panel .destination-card{
     display:block !important;
@@ -148,7 +119,6 @@
     overflow:visible !important;
 }
 
-/* Box operatori trascinati, solo grafico */
 .turnar-pending-box{
     display:flex !important;
     flex-direction:column !important;
@@ -182,7 +152,6 @@
     text-align:left !important;
 }
 
-/* Disattivo effetto drag grafico aggressivo */
 .operator-card.dragging,
 .operator-card.drag-source-selected,
 .destination-card.drag-over,
