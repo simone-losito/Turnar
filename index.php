@@ -7,6 +7,8 @@ require_once __DIR__ . '/core/helpers.php';
 
 require_login();
 
+require_module('dashboard');
+require_permission('dashboard.view');
 $pageTitle    = 'Dashboard';
 $pageSubtitle = 'Cruscotto operativo giornaliero';
 $activeModule = 'dashboard';
