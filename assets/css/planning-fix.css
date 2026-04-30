@@ -1,8 +1,8 @@
 /* assets/css/planning-fix.css */
-/* FIX DEFINITIVO PLANNING - colonna operatori stabile e leggibile */
+/* Planning stabile: operatori compatti con ruolo/tipologia */
 
 .planning-layout{
-    grid-template-columns:330px minmax(520px,1fr) 330px !important;
+    grid-template-columns:360px minmax(560px,1fr) 330px !important;
     gap:14px !important;
     align-items:start !important;
 }
@@ -33,22 +33,22 @@
     padding:0 6px 0 0 !important;
 }
 
-/* COLONNA OPERATORI: una riga pulita per operatore */
 .operator-card,
 .planning-panel .operator-card{
     display:flex !important;
-    align-items:center !important;
-    justify-content:flex-start !important;
+    flex-direction:column !important;
+    justify-content:center !important;
+    align-items:stretch !important;
     position:relative !important;
     width:100% !important;
-    min-height:34px !important;
-    height:34px !important;
-    max-height:34px !important;
+    min-height:48px !important;
+    height:48px !important;
+    max-height:48px !important;
     margin:0 !important;
-    padding:0 11px !important;
-    border-radius:999px !important;
+    padding:7px 11px !important;
+    border-radius:14px !important;
     overflow:hidden !important;
-    line-height:1 !important;
+    line-height:1.1 !important;
     box-sizing:border-box !important;
 }
 
@@ -63,21 +63,37 @@
 .operator-name,
 .planning-panel .operator-name{
     display:block !important;
-    flex:1 1 auto !important;
-    min-width:0 !important;
-    margin:0 !important;
+    width:100% !important;
+    margin:0 0 4px !important;
     padding:0 !important;
     font-size:12.5px !important;
-    line-height:34px !important;
-    font-weight:900 !important;
+    line-height:1.1 !important;
+    font-weight:950 !important;
     color:var(--text) !important;
     white-space:nowrap !important;
     overflow:hidden !important;
     text-overflow:ellipsis !important;
 }
 
-/* Nel planning compatto nascondo dettagli che causavano casino grafico */
 .operator-meta,
+.planning-panel .operator-meta{
+    display:block !important;
+    width:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+    font-size:10.5px !important;
+    line-height:1.15 !important;
+    font-weight:750 !important;
+    color:var(--muted) !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+}
+
+.operator-meta br{
+    display:none !important;
+}
+
 .operator-card .badge-row,
 .operator-card .operator-badges,
 .operator-card .meta-row,
