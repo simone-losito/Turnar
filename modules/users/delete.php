@@ -1,5 +1,6 @@
 <?php
 // modules/users/delete.php
+// Eliminazione utente con conferma e protezioni backend ruoli
 
 require_once __DIR__ . '/../../core/helpers.php';
 
@@ -10,39 +11,25 @@ $db = db_connect();
 $id = (int)get('id', 0);
 
 if ($id <= 0) {
-    redirect(app_url('modules/users/index.php'));
+    redirect('modules/users/index.php');
 }
 
-function h($value): string
-{
-    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+if (!function_exists('h')) {
+    function h($value): string
+    {
+        return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+    }
 }
 
-if (auth_id() === $id) {
-    redirect(app_url('modules/users/index.php?self_delete_blocked=1'));
+// Nessuno può eliminare sé stesso
+if ((int)auth_id() === $id) {
+    redirect('modules/users/index.php?self_delete_blocked=1');
 }
 
-$stmt = $db->prepare("
-    SELECT
-        u.id,
-        u.username,
-        u.email,
-        u.role,
-        u.scope,
-        u.is_active,
-        u.can_login_web,
-        u.can_login_app,
-        u.is_administrative,
-        u.dipendente_id,
-        d.nome AS dip_nome,
-        d.cognome AS dip_cognome
-    FROM users u
-    LEFT JOIN dipendenti d ON d.id = u.dipendente_id
-    WHERE u.id = ?
-    LIMIT 1
-");
+$stmt = $db->prepare("\n    SELECT\n        u.id,\n        u.username,\n        u.email,\n        u.role,\n        u.scope,\n        u.is_active,\n        u.can_login_web,\n        u.can_login_app,\n        u.is_administrative,\n        u.dipendente_id,\n        d.nome AS dip_nome,\n        d.cognome AS dip_cognome\n    FROM users u\n    LEFT JOIN dipendenti d ON d.id = u.dipendente_id\n    WHERE u.id = ?\n    LIMIT 1\n");
+
 if (!$stmt) {
-    redirect(app_url('modules/users/index.php?delete_error=1'));
+    redirect('modules/users/index.php?delete_error=1');
 }
 
 $stmt->bind_param('i', $id);
@@ -52,24 +39,42 @@ $user = $res ? $res->fetch_assoc() : null;
 $stmt->close();
 
 if (!$user) {
-    redirect(app_url('modules/users/index.php'));
+    redirect('modules/users/index.php');
+}
+
+$role = normalize_role((string)($user['role'] ?? ROLE_USER));
+$isAdministrative = !empty($user['is_administrative']);
+
+// Protezione backend: un Manager non può eliminare Master o utenti amministrativi
+if (function_exists('is_manager') && is_manager() && ($role === ROLE_MASTER || $isAdministrative)) {
+    http_response_code(403);
+    exit('Accesso negato: un manager non può eliminare utenti Master o amministrativi.');
+}
+
+// Protezione extra: l'ultimo Master non può essere eliminato
+if ($role === ROLE_MASTER) {
+    $resMasterCount = $db->query("SELECT COUNT(*) AS total FROM users WHERE role = 'master'");
+    $masterCountRow = $resMasterCount ? $resMasterCount->fetch_assoc() : null;
+    $masterCount = (int)($masterCountRow['total'] ?? 0);
+    if ($resMasterCount instanceof mysqli_result) {
+        $resMasterCount->free();
+    }
+
+    if ($masterCount <= 1) {
+        redirect('modules/users/index.php?last_master_blocked=1');
+    }
 }
 
 $username = trim((string)($user['username'] ?? ''));
 $email = trim((string)($user['email'] ?? ''));
-$role = trim((string)($user['role'] ?? ''));
-$scope = trim((string)($user['scope'] ?? ''));
+$scope = normalize_scope((string)($user['scope'] ?? SCOPE_SELF));
 $isActive = !empty($user['is_active']);
 $canLoginWeb = !empty($user['can_login_web']);
 $canLoginApp = !empty($user['can_login_app']);
-$isAdministrative = !empty($user['is_administrative']);
-$dipendenteId = (int)($user['dipendente_id'] ?? 0);
-
 $linkedPerson = trim((string)($user['dip_cognome'] ?? '') . ' ' . (string)($user['dip_nome'] ?? ''));
 if ($linkedPerson === '') {
     $linkedPerson = 'Nessun collegamento';
 }
-
 $displayName = $username !== '' ? '@' . $username : ('Utente #' . $id);
 
 // --------------------------------------------------
@@ -83,256 +88,43 @@ if (!is_post()) {
     require_once __DIR__ . '/../../templates/layout_top.php';
     ?>
 
-    <style>
-    .delete-page{
-        display:grid;
-        gap:18px;
-    }
-
-    .delete-hero{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap:14px;
-        flex-wrap:wrap;
-    }
-
-    .delete-hero-title{
-        margin:0 0 8px;
-        font-size:24px;
-        font-weight:900;
-        color:var(--text);
-    }
-
-    .delete-hero-sub{
-        margin:0;
-        color:var(--muted);
-        line-height:1.6;
-        font-size:14px;
-    }
-
-    .delete-wrap{
-        display:grid;
-        grid-template-columns:minmax(320px, 860px);
-        gap:18px;
-    }
-
-    .delete-card{
-        background:var(--content-card-bg);
-        border:1px solid var(--line);
-        border-radius:24px;
-        box-shadow:var(--shadow);
-        padding:20px;
-    }
-
-    .delete-card h2{
-        margin:0 0 10px;
-        font-size:22px;
-        font-weight:900;
-        color:var(--text);
-    }
-
-    .delete-sub{
-        margin:0 0 18px;
-        color:var(--muted);
-        line-height:1.6;
-        font-size:14px;
-    }
-
-    .delete-info-grid{
-        display:grid;
-        grid-template-columns:repeat(4,minmax(0,1fr));
-        gap:12px;
-        margin-bottom:18px;
-    }
-
-    .delete-info-item{
-        padding:14px;
-        border-radius:18px;
-        border:1px solid var(--line);
-        background:color-mix(in srgb, var(--bg-3) 86%, transparent);
-    }
-
-    .delete-info-label{
-        font-size:11px;
-        color:var(--muted);
-        text-transform:uppercase;
-        letter-spacing:.05em;
-        margin-bottom:6px;
-        font-weight:700;
-    }
-
-    .delete-info-value{
-        font-size:15px;
-        font-weight:800;
-        color:var(--text);
-        word-break:break-word;
-    }
-
-    .delete-warning{
-        margin-bottom:18px;
-        padding:16px 18px;
-        border-radius:18px;
-        border:1px solid rgba(248,113,113,.24);
-        background:rgba(248,113,113,.10);
-        color:#b91c1c;
-        line-height:1.7;
-        font-size:14px;
-    }
-
-    .delete-warning strong{
-        color:#991b1b;
-    }
-
-    .delete-helper{
-        margin-top:18px;
-        padding:14px 16px;
-        border-radius:18px;
-        border:1px solid rgba(251,191,36,.20);
-        background:rgba(251,191,36,.08);
-        color:#92400e;
-        line-height:1.6;
-        font-size:13px;
-    }
-
-    .delete-actions{
-        display:flex;
-        gap:10px;
-        flex-wrap:wrap;
-        align-items:center;
-        margin-top:6px;
-    }
-
-    @media (max-width: 900px){
-        .delete-info-grid{
-            grid-template-columns:1fr;
-        }
-    }
-    </style>
-
-    <div class="delete-page">
-
-        <div class="card">
-            <div class="delete-hero">
-                <div>
-                    <h1 class="delete-hero-title">Elimina utente</h1>
-                    <p class="delete-hero-sub">
-                        Conferma finale prima della rimozione definitiva dell’account utente dal sistema Turnar.
-                    </p>
-                </div>
-
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <a class="btn btn-ghost" href="<?php echo h(app_url('modules/users/index.php')); ?>">
-                        ← Torna agli utenti
-                    </a>
-                </div>
+    <div class="content-card" style="max-width:920px;">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <a class="btn btn-ghost" href="<?php echo h(app_url('modules/users/index.php')); ?>">← Torna agli utenti</a>
+            </div>
+            <div class="toolbar-right">
+                <span class="soft-pill">Conferma eliminazione</span>
             </div>
         </div>
 
-        <div class="delete-wrap">
-            <section class="delete-card">
-                <h2>Conferma eliminazione</h2>
-                <p class="delete-sub">
-                    Stai per eliminare un account utente. L’eventuale collegamento al personale non verrà eliminato, ma resterà senza account collegato.
-                </p>
+        <div class="alert-error" style="margin-bottom:16px;">
+            <strong>Attenzione:</strong> questa operazione è definitiva e non può essere annullata.
+            L'anagrafica personale collegata non verrà eliminata.
+        </div>
 
-                <div class="delete-info-grid">
-                    <div class="delete-info-item">
-                        <div class="delete-info-label">ID</div>
-                        <div class="delete-info-value"><?php echo (int)$id; ?></div>
-                    </div>
+        <div class="entity-card" style="display:grid;gap:14px;">
+            <div class="entity-row" style="grid-template-columns:repeat(2,minmax(0,1fr));">
+                <div><strong>Utente</strong><br><span class="text-muted"><?php echo h($displayName); ?></span></div>
+                <div><strong>Email</strong><br><span class="text-muted"><?php echo h($email !== '' ? $email : '-'); ?></span></div>
+                <div><strong>Ruolo</strong><br><span class="text-muted"><?php echo h(role_label($role)); ?></span></div>
+                <div><strong>Scope</strong><br><span class="text-muted"><?php echo h(scope_label($scope)); ?></span></div>
+                <div><strong>Personale collegato</strong><br><span class="text-muted"><?php echo h($linkedPerson); ?></span></div>
+                <div><strong>Stato</strong><br><span class="text-muted"><?php echo h($isActive ? 'Attivo' : 'Disattivo'); ?><?php echo $isAdministrative ? ' · Amministrativo' : ''; ?></span></div>
+                <div><strong>Accesso Web</strong><br><span class="text-muted"><?php echo h($canLoginWeb ? 'Sì' : 'No'); ?></span></div>
+                <div><strong>Accesso App</strong><br><span class="text-muted"><?php echo h($canLoginApp ? 'Sì' : 'No'); ?></span></div>
+            </div>
 
-                    <div class="delete-info-item">
-                        <div class="delete-info-label">Username</div>
-                        <div class="delete-info-value"><?php echo h($username !== '' ? '@' . $username : '-'); ?></div>
-                    </div>
-
-                    <div class="delete-info-item">
-                        <div class="delete-info-label">Ruolo</div>
-                        <div class="delete-info-value">
-                            <?php echo function_exists('role_label') ? h(role_label($role)) : h($role !== '' ? ucfirst($role) : '-'); ?>
-                        </div>
-                    </div>
-
-                    <div class="delete-info-item">
-                        <div class="delete-info-label">Scope</div>
-                        <div class="delete-info-value">
-                            <?php echo function_exists('scope_label') ? h(scope_label($scope)) : h($scope !== '' ? ucfirst($scope) : '-'); ?>
-                        </div>
-                    </div>
-
-                    <div class="delete-info-item">
-                        <div class="delete-info-label">Email</div>
-                        <div class="delete-info-value"><?php echo h($email !== '' ? $email : '-'); ?></div>
-                    </div>
-
-                    <div class="delete-info-item">
-                        <div class="delete-info-label">Personale collegato</div>
-                        <div class="delete-info-value"><?php echo h($linkedPerson); ?></div>
-                    </div>
-
-                    <div class="delete-info-item">
-                        <div class="delete-info-label">Accessi</div>
-                        <div class="delete-info-value">
-                            <?php
-                            $accessParts = [];
-                            if ($canLoginWeb) {
-                                $accessParts[] = 'Web';
-                            }
-                            if ($canLoginApp) {
-                                $accessParts[] = 'App';
-                            }
-                            echo h(!empty($accessParts) ? implode(' • ', $accessParts) : 'Nessuno');
-                            ?>
-                        </div>
-                    </div>
-
-                    <div class="delete-info-item">
-                        <div class="delete-info-label">Stato</div>
-                        <div class="delete-info-value">
-                            <?php
-                            $statusParts = [];
-                            $statusParts[] = $isActive ? 'Attivo' : 'Disattivo';
-                            if ($isAdministrative) {
-                                $statusParts[] = 'Amministrativo';
-                            }
-                            echo h(implode(' • ', $statusParts));
-                            ?>
-                        </div>
-                    </div>
+            <form method="post" class="toolbar" style="margin:0;">
+                <div class="toolbar-left">
+                    <a class="btn btn-ghost" href="<?php echo h(app_url('modules/users/index.php')); ?>">Annulla</a>
                 </div>
-
-                <div class="delete-warning">
-                    <strong>Attenzione:</strong><br>
-                    questa operazione è definitiva e non può essere annullata.<br>
-                    Verranno eliminati:
-                    <br>• account utente
-                    <br>• permessi specifici dell’utente
-                    <br>• preferiti destinazioni dell’utente
-                    <br><br>
-                    <strong>Non</strong> verrà eliminata l’anagrafica personale collegata.
+                <div class="toolbar-right">
+                    <button type="submit" class="btn btn-danger" onclick="return confirm('Confermi eliminazione definitiva di <?php echo h(addslashes($displayName)); ?>?');">
+                        Elimina definitivamente
+                    </button>
                 </div>
-
-                <form method="post">
-                    <div class="delete-actions">
-                        <a class="btn btn-ghost" href="<?php echo h(app_url('modules/users/index.php')); ?>">
-                            Annulla
-                        </a>
-
-                        <button
-                            type="submit"
-                            class="btn btn-danger"
-                            onclick="return confirm('Confermi l’eliminazione definitiva di <?php echo h(addslashes($displayName)); ?>?');"
-                        >
-                            Elimina definitivamente
-                        </button>
-                    </div>
-                </form>
-
-                <div class="delete-helper">
-                    Questo file ora è allineato al nuovo stile Turnar e alla logica pulita di conferma prima della cancellazione.
-                </div>
-            </section>
+            </form>
         </div>
     </div>
 
@@ -348,12 +140,11 @@ try {
     $db->begin_transaction();
 
     $stmt = $db->prepare("DELETE FROM user_permissions WHERE user_id = ?");
-    if (!$stmt) {
-        throw new RuntimeException('Errore eliminazione permessi utente.');
+    if ($stmt) {
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $stmt->close();
     }
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    $stmt->close();
 
     $stmt = $db->prepare("DELETE FROM user_favorite_destinations WHERE user_id = ?");
     if ($stmt) {
@@ -376,10 +167,10 @@ try {
     }
 
     $stmt->close();
-
     $db->commit();
-    redirect(app_url('modules/users/index.php?deleted=1'));
+
+    redirect('modules/users/index.php?deleted=1');
 } catch (Throwable $e) {
     $db->rollback();
-    redirect(app_url('modules/users/index.php?delete_error=1'));
+    redirect('modules/users/index.php?delete_error=1');
 }
