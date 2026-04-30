@@ -1,121 +1,102 @@
 /* assets/js/planning-dnd.js */
-/* Drag & drop assistito per Planning Turnar: mantiene il flusso rapido esistente. */
+/* Drag & drop avanzato: operatori + spostamento turni tra cantieri e calendario */
 (function(){
     'use strict';
 
-    function qs(selector, root){ return (root || document).querySelector(selector); }
-    function qsa(selector, root){ return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
+    function qs(s,r){return (r||document).querySelector(s);} 
+    function qsa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
 
     function isPlanningPage(){
-        return !!qs('.planning-layout') || !!qs('.dashboard-shell .planning-layout') || location.pathname.indexOf('/modules/turni/planning.php') !== -1;
+        return location.pathname.indexOf('/modules/turni/') !== -1;
     }
 
-    function getOperatorCards(){
-        return qsa('.operator-card');
+    function extractTurnId(el){
+        var id = el.dataset.turnId || el.dataset.id || '';
+        if(id) return id;
+        var a = el.closest('a');
+        if(a && a.href){
+            var m = a.href.match(/id=(\d+)/);
+            if(m) return m[1];
+        }
+        return '';
     }
 
-    function getDestinationTargets(){
-        var cards = qsa('.destination-card');
-        var zones = qsa('.destination-dropzone');
-        return cards.concat(zones);
+    function extractDestinationId(el){
+        var id = el.dataset.destinationId || el.dataset.id || el.dataset.cantiereId || '';
+        if(id) return id;
+        return '';
     }
 
-    function getCardFromZone(target){
-        return target.closest ? (target.closest('.destination-card') || target) : target;
+    function extractDate(el){
+        return el.dataset.date || '';
     }
 
-    function safeClick(el){
-        if (!el) return;
-        el.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window}));
+    function apiMove(turnId, destId, date, force){
+        return fetch('/Turnar/modules/turni/move.php',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({turno_id:turnId,id_cantiere:destId,data:date,force:force||false})
+        }).then(r=>r.json());
     }
 
-    function clearDragClasses(){
-        qsa('.operator-card.dragging,.operator-card.drag-source-selected,.destination-card.drag-over,.destination-dropzone.drag-over').forEach(function(el){
-            el.classList.remove('dragging','drag-source-selected','drag-over');
+    function initTurnDrag(){
+        qsa('.turn-chip, .calendar-turn').forEach(function(el){
+            if(el.dataset.dndReady) return;
+            el.dataset.dndReady=1;
+            el.setAttribute('draggable','true');
+
+            el.addEventListener('dragstart',function(e){
+                window.TURNAR_DRAG_TURNO = el;
+                el.classList.add('dragging');
+                e.dataTransfer.setData('text/plain','turn');
+            });
+
+            el.addEventListener('dragend',function(){
+                window.TURNAR_DRAG_TURNO=null;
+                el.classList.remove('dragging');
+            });
         });
     }
 
-    function initOperatorDrag(){
-        getOperatorCards().forEach(function(card){
-            if (card.dataset.turnarDndReady === '1') return;
-            card.dataset.turnarDndReady = '1';
-            card.setAttribute('draggable', 'true');
-            card.setAttribute('title', 'Trascina su una destinazione per assegnare rapidamente');
-
-            card.addEventListener('dragstart', function(ev){
-                window.TURNAR_DND_OPERATOR = card;
-                card.classList.add('dragging','drag-source-selected');
-                try {
-                    ev.dataTransfer.effectAllowed = 'copy';
-                    ev.dataTransfer.setData('text/plain', 'operator');
-                } catch(e) {}
+    function initDrop(){
+        qsa('.destination-card, .destination-dropzone, .calendar-day, .calendar-cantiere').forEach(function(target){
+            target.addEventListener('dragover',function(e){
+                if(window.TURNAR_DRAG_TURNO){ e.preventDefault(); }
             });
 
-            card.addEventListener('dragend', function(){
-                window.TURNAR_DND_OPERATOR = null;
-                clearDragClasses();
-            });
-        });
-    }
+            target.addEventListener('drop',function(e){
+                if(!window.TURNAR_DRAG_TURNO) return;
+                e.preventDefault();
 
-    function initDestinationDrop(){
-        getDestinationTargets().forEach(function(target){
-            if (target.dataset.turnarDropReady === '1') return;
-            target.dataset.turnarDropReady = '1';
-            target.setAttribute('title', 'Rilascia qui un operatore per aprire assegnazione rapida');
+                var turnoEl = window.TURNAR_DRAG_TURNO;
+                var turnoId = extractTurnId(turnoEl);
+                var destId = extractDestinationId(target);
+                var date = extractDate(target);
 
-            target.addEventListener('dragenter', function(ev){
-                if (!window.TURNAR_DND_OPERATOR) return;
-                ev.preventDefault();
-                getCardFromZone(target).classList.add('drag-over');
-                target.classList.add('drag-over');
-            });
+                if(!turnoId){ alert('ID turno non trovato'); return; }
 
-            target.addEventListener('dragover', function(ev){
-                if (!window.TURNAR_DND_OPERATOR) return;
-                ev.preventDefault();
-                try { ev.dataTransfer.dropEffect = 'copy'; } catch(e) {}
-            });
-
-            target.addEventListener('dragleave', function(ev){
-                if (target.contains(ev.relatedTarget)) return;
-                getCardFromZone(target).classList.remove('drag-over');
-                target.classList.remove('drag-over');
-            });
-
-            target.addEventListener('drop', function(ev){
-                if (!window.TURNAR_DND_OPERATOR) return;
-                ev.preventDefault();
-                ev.stopPropagation();
-
-                var operatorCard = window.TURNAR_DND_OPERATOR;
-                var destinationCard = getCardFromZone(target);
-
-                clearDragClasses();
-
-                // Mantiene il flusso esistente: seleziona operatore e apre la quick assignment sulla destinazione.
-                safeClick(operatorCard);
-                setTimeout(function(){ safeClick(destinationCard); }, 80);
+                apiMove(turnoId,destId,date,false).then(function(res){
+                    if(res.success){ location.reload(); }
+                    else if(res.requires_force){
+                        if(confirm('Conflitto rilevato. Forzare spostamento?')){
+                            apiMove(turnoId,destId,date,true).then(function(r2){
+                                if(r2.success) location.reload();
+                                else alert(r2.message||'Errore');
+                            });
+                        }
+                    } else {
+                        alert(res.message||'Errore');
+                    }
+                });
             });
         });
     }
 
     function init(){
-        if (!isPlanningPage()) return;
-        initOperatorDrag();
-        initDestinationDrop();
-
-        // Planning può filtrare/aggiornare elementi: ripasso leggero.
-        var obs = new MutationObserver(function(){
-            initOperatorDrag();
-            initDestinationDrop();
-        });
-        obs.observe(document.body, {childList:true, subtree:true});
+        if(!isPlanningPage()) return;
+        initTurnDrag();
+        initDrop();
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+    document.addEventListener('DOMContentLoaded',init);
 })();
