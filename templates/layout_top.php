@@ -43,6 +43,7 @@ $navItems = [
 <link rel="stylesheet" href="<?php echo h(app_url('assets/css/turnar.css')); ?>">
 <link rel="stylesheet" href="<?php echo h(app_url('assets/css/turnar-dark-tune.css')); ?>">
 <link rel="stylesheet" href="<?php echo h(app_url('assets/css/turnar-compact.css')); ?>">
+<link rel="stylesheet" href="<?php echo h(app_url('assets/css/dashboard-compact.css')); ?>">
 <link rel="stylesheet" href="<?php echo h(app_url('assets/css/operators-polish.css')); ?>">
 <link rel="stylesheet" href="<?php echo h(app_url('assets/css/operators-edit-polish.css')); ?>">
 <?php echo $extraHead; ?>
