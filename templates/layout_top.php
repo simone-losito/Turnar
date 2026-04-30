@@ -58,41 +58,42 @@ $navItems = [
         <nav class="topnav">
             <?php foreach ($navItems as $item): ?>
                 <?php
-                [$key,$label,$href,$permission] = $item;
-                $moduleOk = true;
+                [$key, $label, $href, $permission] = $item;
 
-if (function_exists('is_master') && is_master()) {
-    $moduleOk = true;
-} elseif ($key !== 'settings') {
-    $modulesMatrix = json_decode((string)setting('modules_matrix', ''), true);
-
-    if (is_array($modulesMatrix) && isset($modulesMatrix[$key]) && is_array($modulesMatrix[$key])) {
-        $moduleWeb  = array_key_exists('web', $modulesMatrix[$key]) ? !empty($modulesMatrix[$key]['web']) : true;
-        $moduleMenu = array_key_exists('menu', $modulesMatrix[$key]) ? !empty($modulesMatrix[$key]['menu']) : true;
-        $moduleOk = $moduleWeb && $moduleMenu;
-    } else {
-        $moduleOk = function_exists('module_enabled') ? module_enabled($key) : true;
-    }
-}
+                $moduleOk = function_exists('module_menu_visible') ? module_menu_visible($key) : true;
                 $permissionOk = empty($permission) || (function_exists('can') && can($permission));
 
-if (function_exists('is_user') && is_user()) {
-    if (!in_array($key, ['dashboard','assignments','communications','mobile'])) {
-        $permissionOk = false;
-    }
-}
-                if (!$moduleOk || !$permissionOk) { continue; }
+                if (!$moduleOk || !$permissionOk) {
+                    continue;
+                }
+
                 $isActive = ($activeModule === $key) || ($activeModule === 'gantt' && $key === 'reports');
                 ?>
                 <a class="topnav-link <?php echo $isActive ? 'active' : ''; ?>" href="<?php echo h($href); ?>"><?php echo h($label); ?></a>
             <?php endforeach; ?>
         </nav>
         <div class="topbar-actions">
-            <form method="post" action="<?php echo h(app_url('modules/settings/toggle_theme.php')); ?>"><button class="theme-toggle" type="submit"><?php echo $resolvedThemeMode === 'dark' ? '☀️' : '🌙'; ?></button></form>
-            <div class="user-box"><span class="user-name"><?php echo h($currentUserName); ?></span><?php if ($currentUserRole !== ''): ?><span class="user-meta"><?php echo h($currentUserRole); ?> · <?php echo h($currentUserScope); ?></span><?php endif; ?></div>
-            <?php if ($isLogged): ?><a class="logout-link compact" href="<?php echo h(app_url('modules/auth/logout.php')); ?>">Esci</a><?php endif; ?>
+            <form method="post" action="<?php echo h(app_url('modules/settings/toggle_theme.php')); ?>">
+                <button class="theme-toggle" type="submit"><?php echo $resolvedThemeMode === 'dark' ? '☀️' : '🌙'; ?></button>
+            </form>
+            <div class="user-box">
+                <span class="user-name"><?php echo h($currentUserName); ?></span>
+                <?php if ($currentUserRole !== ''): ?>
+                    <span class="user-meta"><?php echo h($currentUserRole); ?> · <?php echo h($currentUserScope); ?></span>
+                <?php endif; ?>
+            </div>
+            <?php if ($isLogged): ?>
+                <a class="logout-link compact" href="<?php echo h(app_url('modules/auth/logout.php')); ?>">Esci</a>
+            <?php endif; ?>
         </div>
     </div>
 </header>
 <main class="page-wrap">
-    <div class="page-head compact-page-head"><div><h1><?php echo h($pageTitle); ?></h1><?php if (trim((string)$pageSubtitle) !== ''): ?><p><?php echo h($pageSubtitle); ?></p><?php endif; ?></div></div>
+    <div class="page-head compact-page-head">
+        <div>
+            <h1><?php echo h($pageTitle); ?></h1>
+            <?php if (trim((string)$pageSubtitle) !== ''): ?>
+                <p><?php echo h($pageSubtitle); ?></p>
+            <?php endif; ?>
+        </div>
+    </div>
