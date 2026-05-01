@@ -1,26 +1,10 @@
 /* assets/css/planning-fix.css */
-/* Planning stabile: operatori compatti con ruolo/tipologia */
+/* VERSIONE PULITA DEFINITIVA */
 
 .planning-layout{
     grid-template-columns:360px minmax(560px,1fr) 330px !important;
     gap:14px !important;
     align-items:start !important;
-}
-
-.planning-panel{
-    padding:14px !important;
-    border-radius:18px !important;
-    overflow:hidden !important;
-}
-
-.planning-panel h3{
-    font-size:16px !important;
-    margin:0 0 6px !important;
-}
-
-.planning-panel-sub{
-    font-size:12px !important;
-    margin:0 0 10px !important;
 }
 
 .planning-scroll{
@@ -33,58 +17,46 @@
     padding:0 6px 0 0 !important;
 }
 
-.operator-card,
-.planning-panel .operator-card{
+/* =========================
+   OPERATORI (FIX VERO)
+   ========================= */
+
+.operator-card{
     display:flex !important;
     flex-direction:column !important;
     justify-content:center !important;
-    align-items:stretch !important;
-    position:relative !important;
     width:100% !important;
-    min-height:48px !important;
     height:48px !important;
+    min-height:48px !important;
     max-height:48px !important;
+    padding:6px 10px !important;
     margin:0 !important;
-    padding:7px 11px !important;
-    border-radius:14px !important;
+    border-radius:12px !important;
     overflow:hidden !important;
-    line-height:1.1 !important;
-    box-sizing:border-box !important;
 }
 
-.operator-card *,
-.planning-panel .operator-card *{
+.operator-card *{
     position:static !important;
     float:none !important;
     transform:none !important;
-    box-sizing:border-box !important;
 }
 
-.operator-name,
-.planning-panel .operator-name{
-    display:block !important;
-    width:100% !important;
-    margin:0 0 4px !important;
-    padding:0 !important;
+/* NOME */
+.operator-name{
     font-size:12.5px !important;
+    font-weight:900 !important;
     line-height:1.1 !important;
-    font-weight:950 !important;
-    color:var(--text) !important;
     white-space:nowrap !important;
     overflow:hidden !important;
     text-overflow:ellipsis !important;
+    margin:0 0 3px !important;
 }
 
-.operator-meta,
-.planning-panel .operator-meta{
-    display:block !important;
-    width:100% !important;
-    margin:0 !important;
-    padding:0 !important;
+/* RUOLO / TIPOLOGIA */
+.operator-meta{
     font-size:10.5px !important;
-    line-height:1.15 !important;
-    font-weight:750 !important;
     color:var(--muted) !important;
+    line-height:1 !important;
     white-space:nowrap !important;
     overflow:hidden !important;
     text-overflow:ellipsis !important;
@@ -94,87 +66,50 @@
     display:none !important;
 }
 
+/* NASCONDO SOLO IL SUPERFLUO */
 .operator-card .badge-row,
-.operator-card .operator-badges,
-.operator-card .meta-row,
 .operator-card .mini-badge,
-.operator-card .pill,
-.operator-card .badge,
-.operator-card [class*="badge"],
-.operator-card [class*="pill"]{
+.operator-card .pill{
     display:none !important;
 }
 
-.destination-card,
-.planning-panel .destination-card{
-    display:block !important;
-    position:relative !important;
-    overflow:visible !important;
+/* =========================
+   DESTINAZIONI
+   ========================= */
+
+.destination-card{
     padding:13px !important;
-    border-radius:17px !important;
-    margin:0 0 10px !important;
-}
-
-.destination-title{
-    font-size:15px !important;
-    line-height:1.2 !important;
-    margin-bottom:6px !important;
-}
-
-.destination-meta{
-    font-size:12px !important;
-    line-height:1.35 !important;
-    margin-bottom:8px !important;
+    border-radius:16px !important;
+    margin-bottom:10px !important;
 }
 
 .destination-dropzone{
-    display:block !important;
-    min-height:58px !important;
+    min-height:60px !important;
     padding:8px !important;
-    border-radius:13px !important;
-    overflow:visible !important;
 }
+
+/* =========================
+   CHIP DRAG
+   ========================= */
 
 .turnar-pending-box{
-    display:flex !important;
-    flex-direction:column !important;
-    gap:6px !important;
-    margin-top:8px !important;
-    padding:8px !important;
-    border:1px dashed color-mix(in srgb, var(--primary) 50%, transparent) !important;
-    border-radius:13px !important;
-    background:color-mix(in srgb, var(--primary) 8%, transparent) !important;
-}
-
-.turnar-pending-title{
-    font-size:10px !important;
-    font-weight:900 !important;
-    color:var(--muted) !important;
-    text-transform:uppercase !important;
+    margin-top:8px;
+    padding:8px;
+    border:1px dashed var(--primary);
+    border-radius:12px;
 }
 
 .turnar-pending-chip{
-    display:block !important;
-    width:100% !important;
-    min-height:30px !important;
-    padding:7px 10px !important;
-    border-radius:999px !important;
-    border:1px solid color-mix(in srgb, var(--primary) 44%, transparent) !important;
-    background:#1e293b !important;
-    color:#fff !important;
-    font-size:12px !important;
-    font-weight:800 !important;
-    cursor:pointer !important;
-    text-align:left !important;
+    display:block;
+    padding:6px 10px;
+    margin-top:5px;
+    border-radius:999px;
+    background:#1e293b;
+    color:#fff;
+    font-size:12px;
 }
 
-.operator-card.dragging,
-.operator-card.drag-source-selected,
-.destination-card.drag-over,
-.destination-dropzone.drag-over{
-    transform:none !important;
-    box-shadow:0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent) inset !important;
-}
+/* ========================= */
 
 @media(max-width:1280px){
     .planning-layout{
